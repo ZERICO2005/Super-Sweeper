@@ -1,0 +1,33 @@
+256 Color Table
+
+0-F: Standard 4bit
+0 Black	
+1 Maroon
+2 Green	
+3 Olive	
+4 Navy
+5 Purple	
+6 Cyan	
+7 Silver	
+8 Gray
+9 Red
+A Lime
+B Yellow
+C Blue
+D Fuchsia
+E Teal
+F White
+
+10 Orange
+
+11-16: Fade Colors
+11 Similiar to Cyan
+16 Similiar to teal
+
+17 Similiar to Red, Mine Highlight
+
+18-1B: LCD Colors
+18 Similiar to Red
+19 Darker Maroon
+1A Similiar to Black
+1B Similiar to Silver

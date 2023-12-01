@@ -1,0 +1,1 @@
+The video player in Super-Sweeper has not been ported to windows yet. The binary files are uncompressed, and hold 6 168x126 4 bit frames each.

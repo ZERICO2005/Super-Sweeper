@@ -1,0 +1,94 @@
+@
+Classic MineSweeper: \M;
+Knight Sweeper: \K;
+All Modes: \F;
+Custom: !;
+Leaderboard: \L;
+Settings: \G;
+Help: ?;
+Exit Game: \E;
+@
+Quick Game:;
+Game Mode: \K;
+Preset: \F;
+Size: #;
+Difficulty: %;
+Start Game: \M;
+Custom: \G;
+Main Menu: \E;
+@
+Pattern Selection: \F;
+Random Mode: ?;
+Select Preset: \M;
+Custom Game: \G;
+Main Menu: \E;
+@
+Game Mode: \K;
+Size X:;
+Size Y:;
+Mine Count: \M;
+Percentage: %;
+Start Game: \F;
+Main Menu: \E;
+@
+High Scores: \L;
+1.;
+2.;
+3.;
+4.;
+5.;
+6.;
+Game Mode: \K;
+Main Menu: \E;
+@
+Safe Guessing:;
+
+Cording (Alpha):;
+Maximum FPS:;
+Version:;
+Main Menu \E;
+@
+Video Mode:;
+Background Effects:;
+Accessibility Mode:;
+@
+Super Sweeper is a version of MineSweeper;
+for the Ti84CE with several modes and;
+features. To play, one can start a quick;
+game from the main menu, this includes;
+options for different difficulties and;
+presets. Once in a game, your objective;
+is to safely Flag \F all the Mines \M by;
+using the numbered tiles as clues to;
+figure out where each Mine \M is located.;
+;
+Use Alpha to search a tile, 2nd to Flag \F;
+a tile, Y= to mark a ? onto a tile, XT0n;
+to chord, mode to pause, and del to quit.;
+;
+I hope you enjoy my game :);
+@
+Paused:;
+Resume Game;
+Restart;
+Main Menu;
+Exit Application;
+Remaining Tiles:;
+Time Taken:;
+@
+Game Over!;
+Restart;
+Main Menu;
+Resume Game;
+Exit Application;
+Remaining Tiles:;
+Time Taken:;
+@
+Game Complete!;
+Resume Game;
+Restart;
+Main Menu;
+Exit Application;
+Score:;
+Time Taken:;
+@
