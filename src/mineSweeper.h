@@ -298,14 +298,20 @@ void expression(unsigned char e) { //Updates the smiley face
 }
 
 void flash() { //uint8_t x
-    for (uint8_t j = 0; j < 32; j++) {
+    for (uint8_t j = 0; j <= 32; j++) {
         uint32_t flashTime = timer_Get(1);
         uint8_t i = 0;
         for (uint16_t *f = paletteRAM; f < paletteRAM + 0x100; f++) {
-            *f = (linear0((initialPalette[i] >> 10) & 31, 31, 31, j) << 10) + (linear0((initialPalette[i] >> 5) & 31, 31, 31, j) << 5) + (linear0(initialPalette[i] & 31, 31, 31, j));
+			#define flashLinear(y0,x) ((((y0) * (32 - (x))) + (31 * (x))) >> 5)
+            *f = (
+				(flashLinear((initialPalette[i] >> 10) & 31,j) << 10) +
+				(flashLinear((initialPalette[i] >> 5) & 31,j) << 5) +
+				flashLinear(initialPalette[i] & 31,j)
+			);
             i++;
+			#undef flashLinear
         }
-        while (deltaTime(timer_Get(1),flashTime) < 1536);
+        while (deltaTime(timer_Get(1),flashTime) < 1472);
     }
 }
 
@@ -796,7 +802,7 @@ void drawGame() {
         horiz((disX * 2) + posX, i + disY - 2, disX * (sizeX) - 1);
     }
     if (!(disX & 1)) { //% 2
-        gColor = *videoMode & 2 ? 0x07 : 0x00; //Inverted Colors
+        gColor = (darkMode != 0) ? 0x07 : 0x00; //Inverted Colors
         vert(319, 0, 240);
     }
     //Border Lines

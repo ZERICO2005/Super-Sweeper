@@ -35,6 +35,9 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+typedef float fp32;
+typedef double fp64;
+
 /* Pointers */
 
 uint8_t _VRAM[153600];
@@ -121,6 +124,29 @@ struct bound expandedPos[56] = {
     {1,35,4,2},{1,36,4,1} //On
 };
 
+/* Internal Time Functions */
+	fp64 getDecimalTime() {
+		struct timespec tp;
+		if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
+			uint64_t nanoTime = tp.tv_sec * 1000000000 + tp.tv_nsec;
+			return (fp64)nanoTime / 1.0e9;
+		} else {
+			perror("clock_gettime");
+			return 0.0;
+		}
+	}
+
+	uint64_t getNanoTime() {
+		struct timespec tp;
+		if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
+			uint64_t nanoTime = tp.tv_sec * 1000000000 + tp.tv_nsec;
+			return nanoTime;
+		} else {
+			perror("clock_gettime");
+			return 0;
+		}
+	}
+
 void outputVRAM();
 void initLCDcontroller();
 void copyFrame();
@@ -145,12 +171,12 @@ size_t ti_Read(void *data, size_t size, size_t count, uint8_t handle) {
 /* Replacement Libary Functions */
 
 uint24_t timer_Get(uint8_t timer) {
-    outputVRAM();
-    double c = ( (double)clock() ) / ( (double)CLOCKS_PER_SEC ); //Time in seconds
-    c *= 32768.0;
-    uint32_t t = ((uint32_t)c) % 16777216;
-    uint24_t g = t;
-    return g;
+	outputVRAM();
+	fp64 timer32K = getDecimalTime(); //Time in seconds
+	timer32K *= 32768.0;
+	uint32_t t = ((uint32_t)timer32K) % 16777216;
+	uint24_t g = t;
+	return g;
 }
 
 const uint8_t* KEYS;
@@ -309,20 +335,14 @@ void kb_Scan() {
 void panFrame() {
     uint32_t lcdBase = 0xD00000 | (*frameBase & 0x7FFF8);
     if (lcdBase > 0xD65800 || lcdBase < 0xD40000 - (resX * resY)) {
-        for (u32 r = 0; r < 153600; r++) {
-            videoCopy[r] = 0x00;
-        }
+		memset(videoCopy,0,153600);
         return;
     }
     if (lcdBase == 0xD40000) { //Fast Case
-        for (u32 r = 0; r < 153600; r++) {
-            videoCopy[r] = _VRAM[r];
-        }
+		memcpy(videoCopy,_VRAM,153600);
     } else if (lcdBase < 0xD40000) { //Above
         u32 dif = 0xD40000 - lcdBase;
-        for (u32 r = 0; r < dif; r++) {
-            videoCopy[r] = 0x00;
-        }
+		memset(videoCopy,0,dif);
         for (u32 r = 0; r < 153600 - dif; r++) {
             if (r + dif >= 0 && r + dif < 153600 - 1) {
                 videoCopy[r + dif] = _VRAM[r];
@@ -339,9 +359,7 @@ void panFrame() {
                 videoCopy[r] = 0x00;
             }
         }
-        for (u32 r = 153600 - dif; r < 153600; r++) {
-            videoCopy[r] = 0x00;
-        }
+		memset(&videoCopy[153600 - dif],0,dif);
     }
 }
 
@@ -353,9 +371,7 @@ void outputVRAM() {
     //printf("%X,%X,%X\n",*frameBase,0xD40000,dif); fflush(stdout);
     panFrame();
     
-    for (u16 s = 0; s < 256; s++) {
-        color16[s] = _paletteRAM[s];
-    }
+	memcpy(color16,_paletteRAM,256);
 
     displayFrame();
 }

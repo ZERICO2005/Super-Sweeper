@@ -215,6 +215,7 @@ uint8_t linear(uint8_t y0, uint8_t y1, uint8_t x0, uint8_t x1, uint8_t x) { //Li
 uint8_t linear0(uint8_t y0, uint8_t y1, uint8_t x1, uint8_t x) { //x0 = 0,  Optomized Linear Interpolation algorithm
   return ((y0 * (x1 - x)) + (y1 * x)) / x1;
 }
+
 void shiftScreen() { //Moves the frame base around
     uint8_t change = 0;
     if (DEBUG & keyReady) {
@@ -267,10 +268,15 @@ void keyReset(uint8_t type) {
 }
 
 void keyPress() { //Makes the game run at a constant FPS
-
     uint24_t frameDelta = 0; //stores the time between frames
     uint24_t frameTime = 0; //stores timer_Get(1)
-    do {
+
+	// static fp64 nStart = 0.0;
+	// static fp64 nFinish = 0.0;
+	// nFinish = getDecimalTime();
+	// printf("\nTime: %.2lfms FPS: %.2lf",(nFinish - nStart) * 1000.0, 1.0 / (nFinish - nStart));
+	// fflush(stdout);
+	do {
         frameTime = timer_Get(1); //frameTime and seed are the same so I only need to call timer_Get(1) once
         if (frameTime >= frameStart) {
             frameDelta = frameTime - frameStart;
@@ -278,7 +284,8 @@ void keyPress() { //Makes the game run at a constant FPS
             frameDelta = (~(frameStart - frameTime)) + 1;
         }
     } while (frameDelta < FPS);
-    
+	// nStart = getDecimalTime();
+
     systemTime = frameTime;
 
     if (fpsCounter) {
@@ -305,6 +312,7 @@ void keyPress() { //Makes the game run at a constant FPS
     if (kb_Data[1] & (kb_Graph | kb_Del)) { //temporary soultion
         status = FORCEQUIT;
     }
+
 
     return;
 }

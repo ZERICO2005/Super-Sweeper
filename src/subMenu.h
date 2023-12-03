@@ -172,8 +172,9 @@ void buildPattern() { //Draws it too
     gColor = 0;
     text6x8(268,45,25);
     gColor = 7;
-    plotFast(VRAM + ((320 * 47) + 270));
-    plotFast(VRAM + ((320 * 48) + 269));
+	plot(270,47);
+	plot(269,48);
+
     drawPattern();
 }
 
@@ -263,8 +264,7 @@ void boardCent() {
         gColor = 0;
         text6x8(195, yCord, (percent % 10));
         text6x8(188, yCord, ((percent / 10) % 10));
-        text6x8(181, yCord, ((percent / 100))); //DEBUG
-
+		// text6x8(181, yCord, ((percent / 100))); //DEBUG
 
     if (w) {
         yCord -= 24;
@@ -379,8 +379,8 @@ void testGraphic() {
     text6x8(220,testGY+3,gMine);
     text6x8(228,testGY+3,gFlag);
     gColor = White;
-    plot(222,testGY+5);
-    plot(221,testGY+6);
+    plot(205,testGY+22);
+    plot(204,testGY+23);
     gColor = Red;
     fillRect(228,testGY+4,4,3);
     uint24_t x = 236;
