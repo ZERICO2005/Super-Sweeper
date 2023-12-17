@@ -6,8 +6,9 @@ set(INCLUDE_PATH "${TOOLCHAIN_PATH}/include")
 set(LIB_PATH "${TOOLCHAIN_PATH}/lib")
 
 set(SRC_DIR "./src")
+set(SRC_LCD_DIR "./src-lcd")
 
-set(PROJECT_NAME "Super-Sweeper-Windows")
+set(PROJECT_NAME "Endless-Super-Sweeper")
 project(${PROJECT_NAME})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
@@ -23,10 +24,11 @@ set(CMAKE_CXX_STANDARD 17)
 # Packages
 find_package(SDL2 REQUIRED)
 
-file(GLOB SRC_FILES "${SRC_DIR}/*.c")
+file(GLOB SRC_FILES "${SRC_DIR}/*.c" "${SRC_LCD_DIR}/*.c")
 # Create an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_LCD_DIR})
 # Compiler Flags Debug(-g -O0) Release(-O3)
 set(OPT_FLAG -O3)
 target_compile_options(${PROJECT_NAME} PUBLIC ${OPT_FLAG} -Wall)
