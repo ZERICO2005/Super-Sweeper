@@ -15,8 +15,6 @@
 #include "global.h"
 #include "subMenu.h"
 
-
-
 /* Menu Header */
 
 // void fadeColor();

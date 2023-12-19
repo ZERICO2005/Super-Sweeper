@@ -115,10 +115,10 @@ uint24_t cursorAllow = 0;
 /* Legacy */
 const uint8_t hiddenText[43] = { //SuperSweeper V:X.XX.X ZERICO2005 YYYY/MM/DD
 	82,110,105,94,107,82,112,94,94,105,94,107,32,85,39, /* Text */
-	0,34,7,8,34,0,                                      /* Version */
+	0,34,7,9,34,0,                                      /* Version */
 	32,89,68,81,72,66,78,2,0,0,5,32,                    /* Text */
 	2,0,2,3,36,                                         /* Year */
-	1,2,36,1,6,                                         /* Month Day */
+	1,2,36,1,9,                                         /* Month Day */
 };
 const uint8_t hiddenTextLength = 43;
 

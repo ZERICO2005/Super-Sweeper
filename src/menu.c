@@ -13,8 +13,6 @@
 #include "global.h"
 #include "subMenu.h"
 
-
-
 /* Menu Header */
 
 void fadeColor();
@@ -292,6 +290,7 @@ void dial(uint16_t boxOffset, uint8_t boxRow) { //uint8_t src, uint8_t des
 
     if ((boxType[box] & F) && boxFunction[box] != NULL) { //Function
         (*boxFunction[box])();
+		value = getNumber(box); // Keeps track of any changes made by a function
     }
 
     gColor = boxRow + 0xF0; //16

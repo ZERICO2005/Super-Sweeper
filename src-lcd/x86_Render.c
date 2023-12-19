@@ -17,22 +17,82 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-uint16_t PreCalc_RGB1555[65536 * 3];
-uint16_t PreCalc_BGR1555[65536 * 3];
-uint16_t PreCalc_RGB565[65536 * 3];
-uint16_t PreCalc_BGB565[65536 * 3];
-uint16_t PreCalc_RGB555[65536 * 3];
-uint16_t PreCalc_BGR555[65536 * 3];
-uint16_t PreCalc_RGB444[65536 * 3];
-uint16_t PreCalc_BGR444[65536 * 3];
+uint8_t scale = 2; // Integer Scaling
+
+uint8_t PreCalc_RGB1555[65536 * 3];
+uint8_t PreCalc_BGR1555[65536 * 3];
+uint8_t PreCalc_RGB565[65536 * 3];
+uint8_t PreCalc_BGR565[65536 * 3];
+uint8_t PreCalc_RGB555[65536 * 3];
+uint8_t PreCalc_BGR555[65536 * 3];
+uint8_t PreCalc_RGB444[65536 * 3];
+uint8_t PreCalc_BGR444[65536 * 3];
 
 void Calculate16BitColor() {
-	// for (uint32_t i = 0; i < 65536; i++) {
-	// 	uint16_t c = (uint16_t)i;
-	// 	uint8_t r = (uint8_t)(c & 0x1F);
-	// 	uint8_t g = (uint8_t)((c & 0x3E0) >> 5);
-	// 	uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
-	// }
+	{ // 1555
+		size_t z = 0;
+		for (uint32_t i = 0; i < 65536; i++) {
+			uint16_t c = (uint16_t)i;
+			uint8_t r = (uint8_t)(c & 0x1F);
+			uint8_t g = (uint8_t)((c & 0x3E0) >> 4) + ((g & 0x8000) ? 1 : 0);
+			uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
+			r *= 8; g *= 4; b *= 8;
+			r += r / 32;
+			g += g / 64;
+			b += b / 32;
+			PreCalc_RGB1555[z] = r; PreCalc_BGR1555[z] = b; z++;
+			PreCalc_RGB1555[z] = g; PreCalc_BGR1555[z] = g; z++;
+			PreCalc_RGB1555[z] = b; PreCalc_BGR1555[z] = r; z++;
+		}
+	}
+	{ // 565
+		size_t z = 0;
+		for (uint32_t i = 0; i < 65536; i++) {
+			uint16_t c = (uint16_t)i;
+			uint8_t r = (uint8_t)(c & 0x1F);
+			uint8_t g = (uint8_t)((c & 0x7E0) >> 4);
+			uint8_t b = (uint8_t)((c & 0xF800) >> 11);
+			r *= 8; g *= 4; b *= 8;
+			r += r / 32;
+			g += g / 64;
+			b += b / 32;
+			PreCalc_RGB565[z] = r; PreCalc_BGR565[z] = b; z++;
+			PreCalc_RGB565[z] = g; PreCalc_BGR565[z] = g; z++;
+			PreCalc_RGB565[z] = b; PreCalc_BGR565[z] = r; z++;
+		}
+	}
+	{ // 555
+		size_t z = 0;
+		for (uint32_t i = 0; i < 65536; i++) {
+			uint16_t c = (uint16_t)i;
+			uint8_t r = (uint8_t)(c & 0x1F);
+			uint8_t g = (uint8_t)((c & 0x3E0) >> 5);
+			uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
+			r *= 8; g *= 8; b *= 8;
+			r += r / 32;
+			g += g / 32;
+			b += b / 32;
+			PreCalc_RGB555[z] = r; PreCalc_BGR555[z] = b; z++;
+			PreCalc_RGB555[z] = g; PreCalc_BGR555[z] = g; z++;
+			PreCalc_RGB555[z] = b; PreCalc_BGR555[z] = r; z++;
+		}
+	}
+	{ // 444
+		size_t z = 0;
+		for (uint32_t i = 0; i < 65536; i++) {
+			uint16_t c = (uint16_t)i;
+			uint8_t r = (uint8_t)(c & 0xF);
+			uint8_t g = (uint8_t)((c & 0xF0) >> 4);
+			uint8_t b = (uint8_t)((c & 0xF00) >> 8);
+			r *= 16; g *= 16; b *= 16;
+			r += r / 16;
+			g += g / 16;
+			b += b / 16;
+			PreCalc_RGB444[z] = r; PreCalc_BGR444[z] = b; z++;
+			PreCalc_RGB444[z] = g; PreCalc_BGR444[z] = g; z++;
+			PreCalc_RGB444[z] = b; PreCalc_BGR444[z] = r; z++;
+		}
+	}
 }
 
 /* Modern Code */
@@ -102,7 +162,6 @@ uint16_t color16[256];
 uint8_t colorR[256];
 uint8_t colorG[256];
 uint8_t colorB[256];
-uint8_t scale = 2;
 
 #define keyBindSelection keyBind2
 
@@ -291,7 +350,8 @@ void internal_kb_Scan() {
 }
 
 void panFrame() {
-    uint32_t lcdBase = 0xD00000 | (lcd_UpBase & 0x7FFF8);
+	lcd_UpBase = 0xD00000 | (lcd_UpBase & 0x7FFF8);
+    uint32_t lcdBase = lcd_UpBase;
     if (lcdBase > 0xD65800 || lcdBase < 0xD40000 - (LCD_RESX * LCD_RESY)) {
 		memset(videoCopy,0,153600);
         return;
@@ -339,8 +399,56 @@ void outputVRAM() {
 #define videoCopyArray uint8_t c = videoCopy[z]
 
 void blit16bpp(uint8_t* data) {
-    return; //Real time conversion will be painful
+	uint8_t* PreCalc16;
+	uint8_t colorMode = (lcd_VideoMode & 0b1110) >> 1;
+	switch (colorMode) {
+		case 0b100:
+			PreCalc16 = (lcd_VideoMode & 0x100) ? PreCalc_BGR1555 : PreCalc_RGB1555;
+		break;
+		case 0b110:
+			PreCalc16 = (lcd_VideoMode & 0x100) ? PreCalc_BGR565 : PreCalc_RGB565;
+		break;
+		case 0b111:
+			PreCalc16 = (lcd_VideoMode & 0x100) ? PreCalc_BGR444 : PreCalc_RGB444;
+		break;
+		default:
+			PreCalc16 = (lcd_VideoMode & 0x100) ? PreCalc_BGR555 : PreCalc_RGB555;
+	};
+	if (scale <= 1) {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX; x++) {
+				uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
+				c *= 3;
+				data[w] = PreCalc16[c]; w++;
+				data[w] = PreCalc16[c + 1]; w++;
+				data[w] = PreCalc16[c + 2]; w++;
+				z++;
+			}
+		}
+	} else {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX; x++) {
+				uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
+				c *= 3;
+				for (uint8_t s = 0; s < scale; s++) {
+					data[w] = PreCalc16[c]; w++;
+					data[w] = PreCalc16[c + 1]; w++;
+					data[w] = PreCalc16[c + 2]; w++;
+				}
+				z++;
+			}
+			for (uint8_t s = 0; s < scale - 1; s++) {
+				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
+				w += (LCD_RESX * scale * 3);
+			}
+		}
+	}
 }
+
 void blit8bpp(uint8_t* data) {
     if (scale == 1) {
         uint32_t w = 0;
@@ -358,35 +466,36 @@ void blit8bpp(uint8_t* data) {
         uint32_t w = 0;
         uint32_t z = 0;
         for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint8_t v = 0; v < scale; v++) {
-                for (uint32_t x = 0; x < LCD_RESX; x++) {
-                    videoCopyArray;
-                    for (uint8_t u = 0; u < scale; u++) {
-                        data[w] = colorR[c]; w++;
-                        data[w] = colorG[c]; w++;
-                        data[w] = colorB[c]; w++;
-                    }
-                    z++;
-                }
-                z -= 320;
-            }
-            z += 320;
+			for (uint32_t x = 0; x < LCD_RESX; x++) {
+				videoCopyArray;
+				for (uint8_t s = 0; s < scale; s++) {
+					data[w] = colorR[c]; w++;
+					data[w] = colorG[c]; w++;
+					data[w] = colorB[c]; w++;
+				}
+				z++;
+			}
+			for (uint8_t s = 0; s < scale - 1; s++) {
+				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
+				w += (LCD_RESX * scale * 3);
+			}
         }
     }
 }
 void blit4bpp(uint8_t* data) {
+	const uint32_t PixelsPerByte = 2;
     if (scale == 1) {
         uint32_t w = 0;
         uint32_t z = 0;
         for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX / 2; x++) {
+            for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
                 videoCopyArray;
-                data[w] = colorR[c & 15]; w++;
-                data[w] = colorG[c & 15]; w++;
-                data[w] = colorB[c & 15]; w++;
-                data[w] = colorR[(c >> 4) & 15]; w++;
-                data[w] = colorG[(c >> 4) & 15]; w++;
-                data[w] = colorB[(c >> 4) & 15]; w++;
+                data[w] = colorR[c & 0xF]; w++;
+                data[w] = colorG[c & 0xF]; w++;
+                data[w] = colorB[c & 0xF]; w++;
+                data[w] = colorR[(c >> 4) & 0xF]; w++;
+                data[w] = colorG[(c >> 4) & 0xF]; w++;
+                data[w] = colorB[(c >> 4) & 0xF]; w++;
                 z++;
             }
         }
@@ -394,24 +503,115 @@ void blit4bpp(uint8_t* data) {
         uint32_t w = 0;
         uint32_t z = 0;
         for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint8_t v = 0; v < scale; v++) {
-                for (uint32_t x = 0; x < LCD_RESX / 2; x++) {
-                    videoCopyArray;
-                    for (uint8_t u = 0; u < scale; u++) {
-                        data[w] = colorR[c & 15]; w++;
-                        data[w] = colorG[c & 15]; w++;
-                        data[w] = colorB[c & 15]; w++;
-                        data[w] = colorR[(c >> 4) & 15]; w++;
-                        data[w] = colorG[(c >> 4) & 15]; w++;
-                        data[w] = colorB[(c >> 4) & 15]; w++;
-                    }
-                    z++;
-                }
-                z -= 160;
-            }
-            z += 160;
+			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+				videoCopyArray;
+				for (uint8_t s = 0; s < scale; s++) {
+					data[w] = colorR[c & 0xF]; w++;
+					data[w] = colorG[c & 0xF]; w++;
+					data[w] = colorB[c & 0xF]; w++;
+					data[w] = colorR[(c >> 4) & 0xF]; w++;
+					data[w] = colorG[(c >> 4) & 0xF]; w++;
+					data[w] = colorB[(c >> 4) & 0xF]; w++;
+				}
+				z++;
+			}
+			for (uint8_t s = 0; s < scale - 1; s++) {
+				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
+				w += (LCD_RESX * scale * 3);
+			}
         }
     }
+}
+void blit2bpp(uint8_t* data) {
+	const uint32_t PixelsPerByte = 4;
+	if (scale == 1) {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+				videoCopyArray;
+				data[w] = colorR[c & 0x3]; w++;
+				data[w] = colorG[c & 0x3]; w++;
+				data[w] = colorB[c & 0x3]; w++;
+				data[w] = colorR[(c >> 2) & 0x3]; w++;
+				data[w] = colorG[(c >> 2) & 0x3]; w++;
+				data[w] = colorB[(c >> 2) & 0x3]; w++;
+				data[w] = colorR[(c >> 4) & 0x3]; w++;
+				data[w] = colorG[(c >> 4) & 0x3]; w++;
+				data[w] = colorB[(c >> 4) & 0x3]; w++;
+				data[w] = colorR[(c >> 6) & 0x3]; w++;
+				data[w] = colorG[(c >> 6) & 0x3]; w++;
+				data[w] = colorB[(c >> 6) & 0x3]; w++;
+				z++;
+			}
+		}
+	} else {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+				videoCopyArray;
+				for (uint8_t s = 0; s < scale; s++) {
+					data[w] = colorR[c & 0x3]; w++;
+					data[w] = colorG[c & 0x3]; w++;
+					data[w] = colorB[c & 0x3]; w++;
+					data[w] = colorR[(c >> 2) & 0x3]; w++;
+					data[w] = colorG[(c >> 2) & 0x3]; w++;
+					data[w] = colorB[(c >> 2) & 0x3]; w++;
+					data[w] = colorR[(c >> 4) & 0x3]; w++;
+					data[w] = colorG[(c >> 4) & 0x3]; w++;
+					data[w] = colorB[(c >> 4) & 0x3]; w++;
+					data[w] = colorR[(c >> 6) & 0x3]; w++;
+					data[w] = colorG[(c >> 6) & 0x3]; w++;
+					data[w] = colorB[(c >> 6) & 0x3]; w++;
+				}
+				z++;
+			}
+			for (uint8_t s = 0; s < scale - 1; s++) {
+				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
+				w += (LCD_RESX * scale * 3);
+			}
+		}
+	}
+}
+
+void blit1bpp(uint8_t* data) {
+	const uint32_t PixelsPerByte = 8;
+	if (scale == 1) {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+				videoCopyArray;
+				for (uint8_t b = 0; b < PixelsPerByte; b++) {
+					data[w] = colorR[(c >> b) & 0x1]; w++;
+					data[w] = colorG[(c >> b) & 0x1]; w++;
+					data[w] = colorB[(c >> b) & 0x1]; w++;
+				}
+				z++;
+			}
+		}
+	} else {
+		uint32_t w = 0;
+		uint32_t z = 0;
+		for (uint32_t y = 0; y < LCD_RESY; y++) {
+			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+				videoCopyArray;
+				for (uint8_t s = 0; s < scale; s++) {
+					for (uint8_t b = 0; b < 8; b++) {
+						data[w] = colorR[(c >> b) & 0x1]; w++;
+						data[w] = colorG[(c >> b) & 0x1]; w++;
+						data[w] = colorB[(c >> b) & 0x1]; w++;
+					}
+				}
+				z++;
+			}
+			for (uint8_t s = 0; s < scale - 1; s++) {
+				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
+				w += (LCD_RESX * scale * 3);
+			}
+		}
+	}
 }
 
 uint8_t darkMode = 0;
@@ -422,15 +622,34 @@ void copyFrame(uint8_t* data) {
 	memcpy(color16,lcd_Palette,256 * sizeof(uint16_t));
 	memcpy(paletteRAM,lcd_Palette,256 * sizeof(uint16_t));
 	size_t copyAmount = 0;
-	if ((lcd_VideoMode & 0xF) == 0x5) {
-		copyAmount = 320 * 240 / 2;
-	}
-	if ((lcd_VideoMode & 0xF) == 0x7) {
-		copyAmount = 320 * 240;
-	}
-	if ((lcd_VideoMode & 0xF) == 0xD) {
-		copyAmount = 320 * 240 * 2;
-	}
+	uint8_t colorMode = (lcd_VideoMode & 0b1110) >> 1;
+	switch (colorMode) {
+		case 0b000: // 1bpp
+			copyAmount = (LCD_RESX * LCD_RESY) / 8;
+		break;
+		case 0b001: // 2bpp
+			copyAmount = (LCD_RESX * LCD_RESY) / 4;
+		break;
+		case 0b010: // 4bpp
+			copyAmount = (LCD_RESX * LCD_RESY) / 2;
+		break;
+		case 0b011: // 8bpp
+			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+		break;
+		case 0b100: // 16bpp
+			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+		break;
+		case 0b110: // 16bpp
+			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+		break;
+		case 0b111: // 16bpp
+			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+		break;
+		default:
+			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+	};
+
+	lcd_UpBase = 0xD00000 | (lcd_UpBase & 0x7FFF8);
 	memcpy(videoCopy,((uint8_t*)&simulated_ram[lcd_UpBase]),copyAmount);
     if (lcd_VideoMode & 0x100) {
         //Converts 1555 to 888 Color
@@ -474,7 +693,31 @@ void copyFrame(uint8_t* data) {
             colorR[i] ^= 0xFF;
         }
     }
-
+	switch (colorMode) {
+		case 0b000:
+			blit1bpp(data);
+		break;
+		case 0b001:
+			blit2bpp(data);
+		break;
+		case 0b010:
+			blit4bpp(data);
+		break;
+		case 0b011:
+			blit8bpp(data);
+		break;
+		case 0b100:
+			blit16bpp(data);
+		break;
+		case 0b110:
+			blit16bpp(data);
+		break;
+		case 0b111:
+			blit16bpp(data);
+		break;
+		default:
+			blit16bpp(data);
+	};
     if ((lcd_VideoMode & 0xF) == 0x5) {
         blit4bpp(data);
     }
@@ -555,6 +798,7 @@ void initLCDcontroller() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
     texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB24,SDL_TEXTUREACCESS_STREAMING, LCD_RESX * scale, LCD_RESY * scale);
+	Calculate16BitColor();
 }
 
 void newFrame() {

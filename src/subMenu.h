@@ -28,6 +28,15 @@ void quickSkill();
 void drawPattern();
 void swapPrimaries();
 //Custom Game
+
+extern bool followPercentageOnResize; // Otherwise resizing the board follows Mine Count
+
+void changeInBoardSize();
+
+void changeInPercent(); // Sets Mine Count based on Percentage of Mines
+
+void changeInMineCount(); // Sets Percentage of Mines based on Mine Count
+
 void perCent();
 void mineCent();
 void boardCent();

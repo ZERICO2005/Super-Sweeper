@@ -9,7 +9,9 @@
 #ifndef SUBMENU_H
 #define SUBMENU_H
 
-#include <stdint.h>
+#include "Common_Def.h"
+#include "subMenu.h"
+
 #include "global.h"
 #include "prime2D.h"
 #include "primeKey.h"
@@ -21,6 +23,8 @@
 #define boxPos (offset + row)
 
 //Main Menu
+
+
 void modeSet();
 void randomMode();
 void quickPreset() {
@@ -37,9 +41,12 @@ void quickSkill() {
 void drawPattern();
 void swapPrimaries();
 //Custom Game
-void perCent();
-void mineCent();
-void boardCent();
+void changeInBoardSize();
+void changeInPercent();
+void changeInMineCount();
+// void perCent();
+// void mineCent();
+// void boardCent();
 
 void custom_SizePercent();
 void custom_Mines();
@@ -84,7 +91,7 @@ uint8_t boxType[60] = {9,9,9,9,9,9,9,9,0,22,4,4,4,1,9,9,22,1,9,9,9,22,22,22,22,2
 uint8_t boxColor[60] = {5,11,9,12,6,2,1,8,5,8,8,8,8,7,8,8,10,14,7,8,8,8,8,8,9,8,1,8,5,8,8,8,8,8,8,10,8,1,8,8,8,7,8,9,8,8,8,11,8,8,8,12,5,8,8,8,8,9,8,8};
 uint8_t boxDirect[60] = {1,1,2,3,4,5,9,0,0,0,0,0,0,0,3,0,0,0,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,7,8,0,0,0,0,0,5,0,0,0,0,0,0,5,0,0,0,0,5,0};
 uint16_t textIndex[61] = {0,23,41,54,64,79,91,99,112,124,137,147,155,169,183,193,206,227,242,256,271,284,297,305,313,327,341,355,368,383,386,389,392,395,398,401,414,427,446,460,475,491,500,512,526,535,547,556,567,586,605,628,647,659,668,684,701,719,734,743,755};
-void (*boxFunction[60])() = {modeSet,modeSet,0,0,0,0,0,quitGame,0,drawPattern,0,0,0,gameStart,0,0,drawPattern,randomMode,0,0,0,drawPattern,boardCent,boardCent,mineCent,perCent,gameStart,0,0,0,0,0,0,0,0,leadChange,0,swapPrimaries,0,0,0,0,0,0,0,0,0,videoUpdate,accessSet,0,0,0,fpsUpdate,0,0,0,0,0,0,0};
+void (*boxFunction[60])() = {modeSet,modeSet,0,0,0,0,0,quitGame,0,drawPattern,0,0,0,gameStart,0,0,drawPattern,randomMode,0,0,0,drawPattern,changeInBoardSize,changeInBoardSize,changeInMineCount,changeInPercent,gameStart,0,0,0,0,0,0,0,0,leadChange,0,swapPrimaries,0,0,0,0,0,0,0,0,0,videoUpdate,accessSet,0,0,0,fpsUpdate,0,0,0,0,0,0,0};
 void* boxPointer[60] = {0,0,0,0,0,0,0,0,0,&gameMode,0,0,0,0,0,0,&gameMode,&gameMode,0,0,0,&gameMode,&sizeX,&sizeY,&chance,&percent,0,0,0,0,0,0,0,0,0,&gameMode,0,&swapAlphaSecondBind,0,0,0,0,0,&safeGuess,&chording,&autoSolver,0,&displayMode,&accessMode,&fadeEffect,&cursorGraphic,&movieIntro,&fpsT,0,&autoSaveMax,0,0,0,0,0};
 uint8_t boxMin[60] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0};
 uint16_t boxMax[60] = {0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,16,0,0,0,0,16,52,27,702,50,0,0,0,0,0,0,0,0,0,16,0,1,0,0,0,0,0,2,1,2,0,3,1,2,1,1,1080,0,3,0,0,0,0,0};
@@ -96,9 +103,12 @@ uint8_t sourceText[755] = {66,101,90,108,108,98,92,32,76,98,103,94,82,112,94,94,
 void modeSet() {
 	gameMode = row; //It does the job
 }
+
+// Randomly chooses a gameMode that is not the current gameMode
 void randomMode() {
     srand(seed);
-	gameMode = rand() % (gameModeCount + 1);
+	uint24_t newGameMode = rand() % (gameModeCount + 1); // Base 1 indexing, refactor/fix this later
+	gameMode = (newGameMode == gameMode) ? ((newGameMode + 1) % (gameModeCount + 1)) : newGameMode;
     gColor = 0xF0;
     fillRect(188, 20 + (0 * 24), 14, 8); //Clears characters
     gColor = Black;
@@ -253,71 +263,128 @@ void custom_Mines() {
 }
 */
 
-void boardCent() {
-    uint24_t sizeZ = sizeX * sizeY;
-    uint8_t w = 0;
-    if (chance > sizeZ / 2) { // Overflow
-        chance = (sizeZ) / 2; // Floor Division
-        w = 1;
-    } else if (chance < (sizeZ) / 20) { // Underflow
-        chance = sizeZ % 20 ? (sizeZ / 20) + 1 : sizeZ / 20; // Ceiling Division
-        w = 1;
-    }
-    percent = (chance * 100) / (sizeZ);
-    //Manual percent draw
-    uint24_t yCord = 20 + (24 * 4);
+bool followPercentageOnResize = true; // Otherwise resizing the board follows Mine Count
 
-        gColor = 0xF4;
-        fillRect(181, yCord, 20, 8);
-        gColor = 0;
-        text6x8(195, yCord, (percent % 10));
-        text6x8(188, yCord, ((percent / 10) % 10));
-		// text6x8(181, yCord, ((percent / 100))); //DEBUG
-
-    if (w) {
-        yCord -= 24;
-
-        gColor = 0xF3;
-        fillRect(181, yCord, 20, 8);
-        gColor = 0;
-        text6x8(195, yCord, (chance % 10));
-        text6x8(188, yCord, ((chance / 10) % 10));
-        text6x8(181, yCord, ((chance / 100))); //Unexpected above 2599
-    }
+void changeInBoardSize() {
+	if (followPercentageOnResize == true) {
+		changeInPercent();
+	} else {
+		changeInMineCount();
+	}
 }
 
-void perCent() {
-    chance = (sizeX * sizeY * percent) / 100;
-    uint24_t yCord = 20 + (24 * 3);
+void changeInPercent() { // Sets Mine Count based on Percentage of Mines
+	uint24_t boardSize = sizeX * sizeY;
+	chance = (boardSize * percent) / 100;
+	if (chance < 8) {
+		chance = 8;
+	} else if (chance > boardSize / 2) { // >50% Mines
+		chance = boardSize / 2;
+	}
+	{
+		const uint24_t yCord = 20 + (24 * 3);
+		gColor = 0xF3;
+		fillRect(181, yCord, 20, 8);
+		gColor = 0;
+		text6x8(195, yCord, (chance % 10));
+		text6x8(188, yCord, ((chance / 10) % 10));
+		text6x8(181, yCord, ((chance / 100))); // Undefined above 2599
+		// if (mineCount > 100) {
+		// 	text6x8(181, yCord, ((mineCount / 100))); // Undefined above 2599
+		// 	text6x8(174, yCord, 0x1C); // << Symbol
+		// } else {
+		// 	text6x8(181, yCord, 0x1C); // << Symbol
+		// }
+	}
+	followPercentageOnResize = true;
+}
+
+void changeInMineCount() { // Sets Percentage of Mines based on Mine Count
+	uint24_t boardSize = sizeX * sizeY;
+	percent = (chance * 100) / boardSize;
+	if (percent < 5) {
+		percent = 5;
+		changeInPercent();
+	} else if (percent > 50) {
+		percent = 50;
+		changeInPercent();
+	}
+	{
+		const uint24_t yCord = 20 + (24 * 4);
+		gColor = 0xF4;
+		fillRect(188, yCord, 13, 8);
+		gColor = 0;
+		text6x8(195, yCord, (percent % 10));
+		text6x8(188, yCord, ((percent / 10) % 10));
+	}
+	followPercentageOnResize = false;
+}
+
+// void boardCent() {
+//     uint24_t sizeZ = sizeX * sizeY;
+//     uint8_t w = 0;
+//     if (chance > sizeZ / 2) { // Overflow
+//         chance = (sizeZ) / 2; // Floor Division
+//         w = 1;
+//     } else if (chance < (sizeZ) / 20) { // Underflow
+//         chance = sizeZ % 20 ? (sizeZ / 20) + 1 : sizeZ / 20; // Ceiling Division
+//         w = 1;
+//     }
+//     percent = (chance * 100) / (sizeZ);
+//     //Manual percent draw
+//     uint24_t yCord = 20 + (24 * 4);
+
+//         gColor = 0xF4;
+//         fillRect(181, yCord, 20, 8);
+//         gColor = 0;
+//         text6x8(195, yCord, (percent % 10));
+//         text6x8(188, yCord, ((percent / 10) % 10));
+// 		// text6x8(181, yCord, ((percent / 100))); //DEBUG
+
+//     if (w) {
+//         yCord -= 24;
+
+//         gColor = 0xF3;
+//         fillRect(181, yCord, 20, 8);
+//         gColor = 0;
+//         text6x8(195, yCord, (chance % 10));
+//         text6x8(188, yCord, ((chance / 10) % 10));
+//         text6x8(181, yCord, ((chance / 100))); //Unexpected above 2599
+//     }
+// }
+
+// void perCent() {
+//     chance = (sizeX * sizeY * percent) / 100;
+//     uint24_t yCord = 20 + (24 * 3);
     
-    gColor = 0xF3;
-    fillRect(181, yCord, 20, 8);
-    gColor = 0;
-    text6x8(195, yCord, (chance % 10));
-    text6x8(188, yCord, ((chance / 10) % 10));
-    text6x8(181, yCord, ((chance / 100))); //Unexpected above 2599
-}
+//     gColor = 0xF3;
+//     fillRect(181, yCord, 20, 8);
+//     gColor = 0;
+//     text6x8(195, yCord, (chance % 10));
+//     text6x8(188, yCord, ((chance / 10) % 10));
+//     text6x8(181, yCord, ((chance / 100))); //Unexpected above 2599
+// }
 
-void mineCent() {
-    uint24_t sizeZ = sizeX * sizeY;
-    if (chance > sizeZ / 2) { // Overflow
-        chance = sizeZ % 20 ? (sizeZ / 20) + 1 : sizeZ / 20; // Ceiling Division
-    } else if (chance < (sizeZ) / 20) { // Underflow
-        chance = (sizeZ) / 2; // Floor Division
-    }
-    percent = (chance * 100) / (sizeZ);
+// void mineCent() {
+//     uint24_t sizeZ = sizeX * sizeY;
+//     if (chance > sizeZ / 2) { // Overflow
+//         chance = sizeZ % 20 ? (sizeZ / 20) + 1 : sizeZ / 20; // Ceiling Division
+//     } else if (chance < (sizeZ) / 20) { // Underflow
+//         chance = (sizeZ) / 2; // Floor Division
+//     }
+//     percent = (chance * 100) / (sizeZ);
 
 
-    //Manual percent draw
-    uint24_t yCord = 20 + (24 * 4);
-    gColor = 0xF4;
-    fillRect(188, yCord, 13, 8);
-    fillRect(181, yCord, 6, 8); //DEBUG
-    gColor = 0;
-    text6x8(195, yCord, (percent % 10));
-    text6x8(188, yCord, ((percent / 10) % 10));
-    text6x8(181, yCord, ((percent / 100))); //DEBUG
-}
+//     //Manual percent draw
+//     uint24_t yCord = 20 + (24 * 4);
+//     gColor = 0xF4;
+//     fillRect(188, yCord, 13, 8);
+//     fillRect(181, yCord, 6, 8); //DEBUG
+//     gColor = 0;
+//     text6x8(195, yCord, (percent % 10));
+//     text6x8(188, yCord, ((percent / 10) % 10));
+//     text6x8(181, yCord, ((percent / 100))); //DEBUG
+// }
 
 
 /* Custom Game Menu */
