@@ -41,8 +41,8 @@ void text6x8b4(uint24_t xW, uint24_t yW, uint8_t lexicon) { //Incompatibile with
     uint8_t* fill1 = fill0 + 1280;
     uint24_t b = 1;
 	uint8_t fColor = gColor << 4;
-    for (uint24_t y = 0; y < 8; y++) {
-        for (uint24_t x = 0; x < 3; x++) {
+    for (uint8_t y = 0; y < 8; y++) {
+        for (uint8_t x = 0; x < 3; x++) {
 			*fill0 = bitImage0 & b ? gColor : 0;
 			*fill1 = bitImage1 & b ? gColor : 0;
 			b <<= 1;

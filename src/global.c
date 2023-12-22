@@ -9,11 +9,7 @@
 //#include <col.h>
 
 #include "Common_Def.h"
-
-enum COLORS { //Will it be used? Or will knuckles prevail
-    Black,Red,Yellow,Lime,Teal,Blue,Magenta,White,
-    Grey,Maroon,Brown,Green,Cyan,Navy,Purple,Silver
-};
+#include "global.h"
 
 /*
 ** This file is a file where I dumped all the global variables so things would not break
@@ -79,7 +75,7 @@ u8 fpsCounter = 1; //Debug thing
 u8 cursorGraphic = 0;
 u8 movieIntro = 1;
 
-uint32_t FPS = (32768 / 1024); //Set to 0 for unlimited
+uint32_t FPS = (32768 / 960); //Set to 0 for unlimited
 uint32_t fpsT = 120; //temp value
 
 //Data Settings
@@ -102,7 +98,6 @@ uint8_t cheatText[16] = {88,104,110,32,66,97,94,90,109,94,93,48,32,29,39,37};
 /* Text */
 
 /* IO Handeling */
-enum STATUS {OKAY,RESTART,QUIT,FORCEQUIT};
 uint8_t status = 0;
 /* IO Handeling */
 
@@ -115,10 +110,10 @@ uint24_t cursorAllow = 0;
 /* Legacy */
 const uint8_t hiddenText[43] = { //SuperSweeper V:X.XX.X ZERICO2005 YYYY/MM/DD
 	82,110,105,94,107,82,112,94,94,105,94,107,32,85,39, /* Text */
-	0,34,7,9,34,0,                                      /* Version */
+	(PROGRAM_V_MAJOR),34,((PROGRAM_V_MINOR) / 10),((PROGRAM_V_MINOR) % 10),34,PROGRAM_V_PATCH,                                      /* Version */
 	32,89,68,81,72,66,78,2,0,0,5,32,                    /* Text */
 	2,0,2,3,36,                                         /* Year */
-	1,2,36,1,9,                                         /* Month Day */
+	1,2,36,2,1,                                         /* Month Day */
 };
 const uint8_t hiddenTextLength = 43;
 
@@ -171,10 +166,6 @@ uint16_t initialPalette[256] = {
 /*E*/,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 /*F*/,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000 /* Menu fade effect */
 };
-
-//const uint8_t CLICKABLE = 0b00000100; const uint8_t SELECT1 = 0b00000001; const uint8_t SELECT2 = 0b00000010; const uint8_t SELECT3 = 0b00000011;           red darkRed 0grey 1grey
-enum guiType {Click = 1, Scroll = 2, Dial = 4, Direct = 8, Value = 16, Dot = 32, BoolToggle = 64, Text = 128};
-enum GUITYPE { C = 1, F = 2, N = 4, P = 8, V = 16, D = 32, B = 64, T = 128};
 
 /* Global */
 //Video

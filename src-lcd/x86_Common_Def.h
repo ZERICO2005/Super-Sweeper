@@ -18,6 +18,10 @@
 #include <stdbool.h>
 #include <time.h>
 
+/* Platform */
+
+#define PLATFORM_WINDOWS
+//#define PLATFORM_LINUX
 
 typedef uint32_t uint24_t;
 typedef int32_t int24_t;

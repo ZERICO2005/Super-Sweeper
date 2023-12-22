@@ -12,9 +12,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#define PROGRAM_V_MAJOR 0
+#define PROGRAM_V_MINOR 80
+#define PROGRAM_V_PATCH 0
+
 //#define PLATFORM_TI84CE
-#define PLATFORM_WINDOWS
-//#define PLATFORM_LINUX
+#define PLATFORM_X86
 
 #ifdef PLATFORM_TI84CE
 	/* Disabled Functions */
@@ -83,6 +86,9 @@ typedef int64_t i64;
 
 
 /* Functions */
+
+	#define STR_M(x) #x
+	#define STR_N(x) STR_M(x)
 
 	#define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
 	#define FREE(x) free(x); x = NULL

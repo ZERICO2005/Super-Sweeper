@@ -123,32 +123,6 @@ uint16_t paletteRAM[256];
 volatile uint16_t _videoMode = 0x92D;
 volatile uint16_t* videoMode = &_videoMode;
 
-// uint32_t _LCDTiming0 = 0x1F0A0338;
-// uint32_t* LCDTiming0 = &_LCDTiming0;
-// uint32_t _LCDTiming1 = 0x0402093F;
-// uint32_t* LCDTiming1 = &_LCDTiming1;
-// uint32_t _LCDTiming2 = 0x00EF7802;
-// uint32_t* LCDTiming2 = &_LCDTiming2;
-// uint32_t _LCDTiming3 = 0x00000000;
-// uint32_t* LCDTiming3 = &_LCDTiming3;
-
-// uint32_t _lcd_CrsrImage;
-// uint32_t* lcd_CrsrImage = &_lcd_CrsrImage;
-// uint32_t _lcd_CrsrCtrl;
-// uint32_t* lcd_CrsrCtrl = &_lcd_CrsrCtrl;
-// uint32_t _lcd_CrsrConfig;
-// uint32_t* lcd_CrsrConfig = &_lcd_CrsrConfig;
-// uint32_t _lcd_CrsrPalette0;
-// uint32_t* lcd_CrsrPalette0 = &_lcd_CrsrPalette0;
-// uint32_t _lcd_CrsrPalette1;
-// uint32_t* lcd_CrsrPalette1 = &_lcd_CrsrPalette1;
-// uint32_t _lcd_CrsrXY;
-// uint32_t* const lcd_CrsrXY = &_lcd_CrsrXY;
-// uint16_t* lcd_CrsrX = (uint16_t*)lcd_CrsrXY;
-// uint16_t* lcd_CrsrY = (uint16_t*)((uint8_t*)lcd_CrsrXY + 2);
-// uint32_t _lcd_CrsrClip;
-// uint32_t* lcd_CrsrClip = &_lcd_CrsrClip;
-
 /* Pointers */
 
 SDL_Event* grab_SDL2_event() {
@@ -349,53 +323,6 @@ void internal_kb_Scan() {
     }
 }
 
-void panFrame() {
-	lcd_UpBase = 0xD00000 | (lcd_UpBase & 0x7FFF8);
-    uint32_t lcdBase = lcd_UpBase;
-    if (lcdBase > 0xD65800 || lcdBase < 0xD40000 - (LCD_RESX * LCD_RESY)) {
-		memset(videoCopy,0,153600);
-        return;
-    }
-    if (lcdBase == 0xD40000) { //Fast Case
-		memcpy(videoCopy,_VRAM,153600);
-    } else if (lcdBase < 0xD40000) { //Above
-        u32 dif = 0xD40000 - lcdBase;
-		memset(videoCopy,0,dif);
-        for (u32 r = 0; r < 153600 - dif; r++) {
-            if (r + dif >= 0 && r + dif < 153600 - 1) {
-                videoCopy[r + dif] = _VRAM[r];
-            } else {
-                videoCopy[r + dif] = 0x00;
-            }
-        }
-    } else if (lcdBase > 0xD40000) { //Below
-        u32 dif = lcdBase - 0xD40000;
-        for (u32 r = 0; r < 153600 - dif; r++) {
-            if (r + dif >= 0 && r + dif < 153600 - 1) {
-                videoCopy[r] = _VRAM[r + dif];
-            } else {
-                videoCopy[r] = 0x00;
-            }
-        }
-		memset(&videoCopy[153600 - dif],0,dif);
-    }
-}
-
-void outputVRAM() {
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-        exit(0);
-    }
-
-    //printf("%X,%X,%X\n",*frameBase,0xD40000,dif); fflush(stdout);
-    panFrame();
-    
-	memcpy(color16,lcd_Palette,256 * sizeof(uint16_t));
-	memcpy(paletteRAM,lcd_Palette,256 * sizeof(uint16_t));
-
-    displayFrame();
-}
-
-//#define videoCopyArray uint8_t c = ((uint8_t*)VRAM)[z]
 #define videoCopyArray uint8_t c = videoCopy[z]
 
 void blit16bpp(uint8_t* data) {
@@ -649,8 +576,7 @@ void copyFrame(uint8_t* data) {
 			copyAmount = (LCD_RESX * LCD_RESY) * 2;
 	};
 
-	lcd_UpBase = 0xD00000 | (lcd_UpBase & 0x7FFF8);
-	memcpy(videoCopy,((uint8_t*)&simulated_ram[lcd_UpBase]),copyAmount);
+	memcpy(videoCopy,((uint8_t*)&simulated_ram[0xD00000 | (lcd_UpBase & 0x7FFF8)]),copyAmount);
     if (lcd_VideoMode & 0x100) {
         //Converts 1555 to 888 Color
         for (uint32_t i = 0; i < 256; i++) {
@@ -729,51 +655,11 @@ void copyFrame(uint8_t* data) {
     }
 }
 
-
-
-void displayFrame() { 
-    // if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-    //     terminateLCDcontroller();
-    //     exit(0);
-    // }
-
-    // uint8_t *frame = NULL;
-
-    // SDL_LockTexture(buffer,NULL,(void **) &frame,&pitch);
-
-    // copyFrame(frame);
-    
-    // SDL_UnlockTexture(buffer);
-    // SDL_RenderCopy(renderer, buffer, NULL, NULL);
-
-    // SDL_RenderPresent(renderer);
-}
-
 /*
 **	===========
 **	Modern Code
 **	===========
 */
-
-fp64 DeltaTime = (1.0 / 60.0);
-
-const uint8_t color_square_divider = 2;
-
-void renderTestGraphic(fp64 cycleSpeed, fp64 minSpeed, fp64 maxSpeed) {
-	static fp64 f = 0.0;
-	fp64 halfDiff = (maxSpeed - minSpeed) / 2.0;
-	fp64 speed = halfDiff * sin(cycleSpeed * TAU * getDecimalTime()) + minSpeed + halfDiff;
-	f += DeltaTime * speed;
-	uint32_t w = (uint32_t)(f * (256.0));
-	size_t z = 0;
-	for (uint32_t y = 0; y < Master.resY; y++) {
-		for (uint32_t x = 0; x < Master.resX; x++) {
-			Master.vram[z] = (x - w) % 256; Master.vram[z] /= color_square_divider; z++;
-			Master.vram[z] = (w - y) % 256; Master.vram[z] /= color_square_divider; z++;
-			Master.vram[z] = (w + x + y) % 256; Master.vram[z] /= color_square_divider; z++;
-		}
-	}
-}
 
 int terminateLCDcontroller() {
     SDL_DestroyRenderer(renderer);
@@ -789,9 +675,6 @@ void initLCDcontroller() {
 	Master.pitch = Master.resX * 3;
 	Master.vram = calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
 	if (Master.vram == NULL) { printf("\nMaster.vram is NULL"); fflush(stdout); return; }
-	// for (size_t z = 0; z < (size_t)Master.resY * Master.pitch; z++) {
-	// 	Master.vram[z] = (uint8_t)((((z * 7) ^ z) + z) & 0xFF);
-	// }
     SDL_Init(SDL_INIT_VIDEO);
 	window = SDL_CreateWindow("Endless-Super-Sweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, LCD_RESX * scale, LCD_RESY * scale,0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -806,7 +689,6 @@ void newFrame() {
         terminateLCDcontroller();
         exit(0);
     }
-	//renderTestGraphic(0.5,0.3,0.8);
 	copyFrame(Master.vram);
 	SDL_UpdateTexture(texture, NULL, Master.vram, Master.pitch);
 	{

@@ -17,19 +17,11 @@ void internal_kb_Scan();
 
 void newFrame(); // Outputs the current vram
 
-// void setKey(uint8_t k);
-// void resetKey(uint8_t k);
-
-// void panFrame();
-
-void outputVRAM();
-
 void blit16bpp(uint8_t* data);
 void blit8bpp(uint8_t* data);
 void blit4bpp(uint8_t* data);
 
 void copyFrame(uint8_t* data);
-void displayFrame();
 
 extern uint8_t darkMode;
 

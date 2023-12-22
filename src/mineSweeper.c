@@ -14,6 +14,8 @@
 #include "global.h"
 #include "gameMenu.h"
 
+#include "dataManager.h"
+
 //#include <col.h>
 
 #define borderIndexes 2
@@ -23,60 +25,8 @@
 #define gQuestion 27
 
 #define currentTime (systemTime - gameStartTime - gamePauseTime)
-void gameControl(); //Temporary May 23
 
-/*
-//legacy
-const uint8_t seg7[18] = {0b1011111,0b0000011,0b1110110,0b1110011,0b0101011,0b1111001,0b1111101,0b1000011,0b1111111,0b1111011,0b1101111,0b0111101,0b1011100,0b0110111,0b1111100,0b1101100,0b0000000,0b0100000};
-//Characters: HEX,_,-
-void displaySeg7(uint24_t i, uint8_t d, uint8_t b, uint24_t x, uint24_t y) { //Number, Digits, X-2, Y-2
-    //Colors: 24/25/26/27
-    uint24_t pow = 1;
-    uint24_t z = (uint24_t)VRAM + y * 320; //Constant offset
-    x += ((d << 3) + d) - 9; //d * 9 - 9 == 9 * (d - 1)
-    for (uint8_t n = 0; n < d; n++) { //Since d was decremented
-        uint8_t j = (i / pow) % b;
-        gColor = (seg7[j] & 64) ? 24 : 25;
-        if (gColor ^ (z + x + (0*320+1))) { //Checks for change in color
-            horiz(x+1,y,6);
-            horiz(x+2,y+1,4);
-        }
-        gColor = (seg7[j] & 32) ? 24 : 25;
-        if (gColor ^ (z + x + (6*320+2))) {
-            horiz(x+2,y+6,4);
-            horiz(x+1,y+7,6);
-            horiz(x+2,y+8,4);
-        }
-        gColor = (seg7[j] & 16) ? 24 : 25;
-        if (gColor ^ (z + x + (13*320+2))) {
-            horiz(x+2,y+13,4);
-            horiz(x+1,y+14,6);
-        }
-        gColor = (seg7[j] & 8) ? 24 : 25;
-        if (gColor ^ (z + x + (1*320+0))) {
-            vert(x,y+1,6);
-            vert(x+1,y+2,4);
-        }
-        gColor = (seg7[j] & 4) ? 24 : 25;
-        if (gColor ^ (z + x + (8*320+0))) {
-            vert(x,y+8,6);
-            vert(x+1,y+9,4);
-        }
-        x += 6;
-        gColor = (seg7[j] & 2) ? 24 : 25;
-        if (gColor ^ (z + x + (8*320+0))) {
-            vert(x,y+2,4);
-            vert(x+1,y+1,6);
-        }
-        gColor = (seg7[j] & 1) ? 24 : 25;
-        if (gColor ^ (z + x + (8*320+0))) {
-            vert(x,y+9,4);
-            vert(x+1,y+8,6);
-        }
-        x -= 15;
-        pow *= b; //base
-    }
-}*/
+void gameControl(); //Temporary 2023 May 23rd
 
 uint8_t alphaBind() {
     if (swapAlphaSecondBind == 0) {
@@ -111,7 +61,6 @@ const uint8_t seg7[18] = {
 	0b1011111,0b0000011,0b1110110,0b1110011,0b0101011,0b1111001,0b1111101,0b1000011,0b1111111,0b1111011,0b1101111,0b0111101,0b1011100,0b0110111,0b1111100,0b1101100,0b0000000,0b0100000
 };
 //Characters: HEX,_,-
-//void displaySeg7(uint24_t i, uint8_t d, uint8_t b, uint24_t x, uint24_t y) { //Number, Digits, X-2, Y-2
 void displaySeg7(uint24_t i, uint8_t b, struct dataSeg7* lcd) { //Number, Digits, X-2, Y-2
     //Colors: 24/25/26/27
     uint24_t x = lcd->x;
@@ -311,8 +260,8 @@ void flagDraw(uint8_t symbol, uint24_t xP, uint24_t yP) {
     uint16_t bitImage0 = char5x5[symbol];
     uint16_t bitImage1 = char5x5[symbol + 1];
     uint8_t* z = lcd_Ram8 + (yP * 320 + xP);
-    for (uint24_t y = 0; y < 5; y++) {
-        for (uint24_t x = 0; x < 5; x++) {
+    for (uint8_t y = 0; y < 5; y++) {
+        for (uint8_t x = 0; x < 5; x++) {
             if (bitImage0 & 1) {
                 *z = gColor;
             }
@@ -416,11 +365,10 @@ void glyph(int16_t space, uint8_t symbol) {
         symbol <<= 1;
         uint16_t bitImage0 = char5x5[symbol];
         uint16_t bitImage1 = char5x5[symbol + 1];
-        // uint24_t z0 = VRAM + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
         // uint24_t z1 = z0 + 960;
         uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
-        for (uint24_t y = 0; y < 5; y++) {
-            for (uint24_t x = 0; x < 5; x++) {
+        for (uint8_t y = 0; y < 5; y++) {
+            for (uint8_t x = 0; x < 5; x++) {
                 if (bitImage0 & 1) {
                     *z = gColor;
                 }
@@ -447,8 +395,8 @@ void glyph(int16_t space, uint8_t symbol) {
     //3x5 Font
     uint16_t bitImage = char3x5[symbol];
     uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
-    for (uint24_t y = 0; y < 5; y++) {
-        for (uint24_t x = 0; x < 3; x++) {
+    for (uint8_t y = 0; y < 5; y++) {
+        for (uint8_t x = 0; x < 3; x++) {
             if (bitImage & 1) {
                 *z = gColor;
             }
@@ -582,26 +530,29 @@ bool mineCheck(int24_t tileM) {
     return false;
 }
 
+uint32_t currentGameSeed = 0;
+
 void mineGenerate() {
-    srand(seed);
+	currentGameSeed = seed;
+    srand(currentGameSeed);
     uint24_t z;
     for (uint24_t i = 0; i < chance; i++) {
         do {
             z = (((rand() % sizeY) + borderIndexes) * marX) + (rand() % sizeX) + borderIndexes;
-        } while (board[z] == 25 || mineCheck(z));
-        board[z] = 25;
+        } while (board[z] == gMine || mineCheck(z));
+        board[z] = gMine;
     }
 
     for (uint8_t y = borderIndexes; y < marY - borderIndexes; y++) {
         for (uint8_t x = borderIndexes; x < marX - borderIndexes; x++) {
-            if (board[y * marX + x] != 25) {
+            if (board[y * marX + x] != gMine) {
                 uint8_t count = 0;
                 int24_t u;
                 int24_t v;
                 for (uint8_t i = 0; i < offLen; i += 2) {
                     u = order[offPos + i];
                     v = order[offPos + i + 1];
-                    if (board[(y + v) * marX + (x + u)] == 25) {
+                    if (board[(y + v) * marX + (x + u)] == gMine) {
                         count++;
                     }
                 }
@@ -747,7 +698,7 @@ void drawGame() {
         if (fadeEffect == 1) {
             uint16_t *fP = lcd_Palette;
             fP += 18;
-            for (uint24_t i = 18; i < 22; i++) {
+            for (uint8_t i = 18; i < 22; i++) {
                 *fP = 330;
                 fP++;
                 initialPalette[i] = 330;
@@ -915,19 +866,27 @@ void resetGame() {
     }
     posY = 21 - (disY * 2);
  
-    for (int24_t i = 0; i < marX * marY; i++) { //Writes invalid spaces
-        board[i] = 255;
-        state[i] = 255;
-        search[i] = 0;
-    }
-    for (int24_t y = borderIndexes; y < marY - borderIndexes; y++) { //Clears arrays
-        for (int24_t x = borderIndexes; x < marX - borderIndexes; x++) {
-            uint24_t i = y * marX + x;
-            board[i] = 0;
-            state[i] = 0;
-            flag[i] = 0;
-        }
-    }
+    // for (int24_t i = 0; i < marX * marY; i++) { //Writes invalid spaces
+    //     board[i] = 255;
+    //     state[i] = 255;
+    //     search[i] = 0;
+    // }
+	size_t marZ = (size_t)marX * (size_t)marY;
+	memset(board,255,marZ * sizeof(board[0]));
+	memset(state,255,marZ * sizeof(state[0]));
+	memset(search,0,marZ * sizeof(search[0]));
+	{
+		size_t z = (borderIndexes * marX) + borderIndexes;
+		for (uint8_t y = 0; y < sizeY; y++) { //Clears arrays
+			for (uint8_t x = 0; x < sizeX; x++) {
+				board[z] = 0;
+				state[z] = 0;
+				flag[z] = 0;
+				z++;
+			}
+			z += 2 * borderIndexes;
+		}
+	}
 
     //2: Reset
     autoLoss = 0;
@@ -1194,7 +1153,7 @@ void gameControl() {
                     // }
                     mineGenerate();
                     gamePauseTime = 0;
-                    gameStartTime= systemTime;
+                    gameStartTime = systemTime;
                 }
 
                 if (state[tile] == sHIDDEN) {
@@ -1264,6 +1223,29 @@ void gameControl() {
 			keyReset(oTHER);
 			pause();
 		}
-        
+
+		// if ((keyReady & OTHER) && (kb_Data[6] & kb_Add)) {
+		// 	keyReset(oTHER);
+		// 	loadGame(NULL,state,flag);
+		// }
+		//if ((keyReady & OTHER) && (kb_Data[6] & kb_Sub)) {
+		// if((keyReady & OTHER) && kb_Data[6] & kb_Power) {
+		// 	keyReset(oTHER);
+		// 	printf("\nSaving Game");
+		// 	GameSaveFile gameSaveFile;
+		// 	gameSaveFile.Version[0] = PROGRAM_V_MAJOR;
+		// 	gameSaveFile.Version[1] = PROGRAM_V_MINOR;
+		// 	gameSaveFile.Version[2] = PROGRAM_V_PATCH;
+		// 	gameSaveFile.Version[3] = 0;
+		// 	gameSaveFile.TimeElapsed = systemTime - gameStartTime - gamePauseTime;
+		// 	gameSaveFile.Score = score;
+		// 	gameSaveFile.Seed = currentGameSeed;
+		// 	gameSaveFile.SizeX = sizeX;
+		// 	gameSaveFile.SizeY = sizeY;
+		// 	gameSaveFile.CursorPos = tile;
+		// 	gameSaveFile.GameState = ((cheater & 1) << 1) | (win & 1);
+		// 	gameSaveFile.GameMode = gameMode;
+		// 	saveGame(&gameSaveFile,state,flag) == false;
+		// }
     }
 }

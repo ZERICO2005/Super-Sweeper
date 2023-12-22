@@ -57,13 +57,14 @@ int main() {
 	// 	fillScreen();
 	// }
 
-	gColor = 0;
-	for (uint24_t y = 256; y < 400; y += 9) {
-		for (uint24_t x = 0; x < 144; x += 9) {
-			fillRect(x,y,8,8);
-			gColor++;
-		}
-	}
+	// Palette Test
+	// gColor = 0;
+	// for (uint24_t y = 256; y < 400; y += 9) {
+	// 	for (uint24_t x = 0; x < 144; x += 9) {
+	// 		fillRect(x,y,8,8);
+	// 		gColor++;
+	// 	}
+	// }
 
     fpsT = 32768 / FPS; //Sets fpsTemp for settings menu
     fontSize = 7;

@@ -116,22 +116,17 @@ const uint16_t char5x5[56] = {
 
 //Primatives
 void fillRect(uint24_t x1, uint24_t y1, uint24_t x2, uint24_t y2) { //x start, y start, x length, y length
-    uint8_t* v = lcd_Ram8 + x1 + (y1 * 320);
-    const uint24_t jump = 320 - x2;
-    for (uint24_t dY = 0; dY < y2; dY++) {
-        for (uint24_t dX = 0; dX < x2; dX++) {
-            *v = gColor;
-            v++;
-        }
-        v += jump;
-    }
+	uint8_t* fill = lcd_Ram8 + (x1 + (y1 * 320));
+	for (uint24_t dY = 0; dY < y2; dY++) {
+		memset(fill,gColor,x2);
+		fill += LCD_RESX;
+	}
 }
 void horiz(uint24_t x1, uint24_t y, uint24_t x2) { //x start, y postion, x length
-    uint8_t* z = lcd_Ram8 + (x1 + x2) + (y * 320);
-    for (uint8_t* fill = lcd_Ram8 + x1 + (y * 320); fill < z; fill++) {
-        *fill = gColor;
-    }
+	uint8_t* fill = lcd_Ram8 + (x1 + (y * LCD_RESX));
+	memset(fill,gColor,x2);
 }
+
 void vert(uint24_t x, uint24_t y1, uint24_t y2) { //x postion, y start, y length
     uint8_t* z = lcd_Ram8 + x + ((y2 + y1) * 320);
     for (uint8_t* fill = lcd_Ram8 + (y1 * 320) + x; fill < z; fill += 320) {
@@ -140,7 +135,7 @@ void vert(uint24_t x, uint24_t y1, uint24_t y2) { //x postion, y start, y length
 }
 
 void fillScreen() { //Fills buffer 0
-	memset(lcd_Ram8,gColor,320 * 240 * 1);
+	memset(lcd_Ram8,gColor,LCD_RESX * LCD_RESY);
 }
 
 //Text Engine

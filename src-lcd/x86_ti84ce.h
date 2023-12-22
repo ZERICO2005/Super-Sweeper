@@ -126,11 +126,29 @@
 	uint32_t timer_Get(uint8_t n);
 
 /* <fileioc.h> */
-	// Not implemented yet, everything returns 0
+	// Limited Implementation
+	#define FILEIOC_DEBUG
+	#ifdef FILEIOC_DEBUG
+		#define printf_FileIOC(...) printf(__VA_ARGS__); fflush(stdout);
+	#else
+		#define printf_FileIOC(...)
+	#endif
+	
+	#define SEEK_SET 0
+	#define SEEK_CUR 1
+	#define SEEK_END 2
 
-	uint8_t ti_Open(const char* name, const char* mode); // Does nothing. Returns 0
-	int ti_Close(uint8_t handle); // Does nothing. Returns 0
-	size_t ti_Read(void* data, size_t size, size_t count, uint8_t handle); // Does nothing. Returns 0
-	int ti_Seek(int offset, unsigned int origin, uint8_t handle); // Does nothing. Returns 0
+	uint8_t ti_Open(const char* name, const char* mode);
+	int ti_Close(uint8_t handle);
+	
+	size_t ti_Read(void* data, size_t size, size_t count, uint8_t handle);
+	size_t ti_Write(const void* data, size_t size, size_t count, uint8_t handle);
+	
+	int24_t ti_PutC(char ch, uint8_t handle);
+	int24_t ti_GetC(uint8_t handle);
+
+	int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle);
+	uint16_t ti_GetSize(uint8_t handle);
+	int24_t ti_Rewind(uint8_t handle);
 
 #endif /* X86_TI84CE_H */
