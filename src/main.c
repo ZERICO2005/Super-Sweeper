@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Endless-Super-Sweeper
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -26,36 +26,16 @@ void init_routine() {
 	memcpy(lcd_Palette,initialPalette,256 * sizeof(uint16_t));
 	lcd_UpBase = 0xD40000;
 	lcd_VideoMode = lcd_BGR8bit;
-	//SPI_Column_Major();
 }
 
 void terminate_routine() {
 	terminateLCDcontroller();
 	lcd_UpBase = 0xD40000;
 	lcd_VideoMode = lcd_BGR16bit;
-	//SPI_Row_Major();
 }
 
 int main() {
 	init_routine();
-
-	// for (uint32_t f = 0; f < 2; f++) {
-	// 	size_t z = 0;
-	// 	for (uint32_t y = 0; y < 200; y++) {
-	// 		for (uint32_t x = 0; x < 320; x++) {
-	// 			lcd_Ram8[z] = (z + f) % 16;
-	// 			z++;
-	// 		}
-	// 	}
-	// 	gColor = 0xC;
-	// 	fillRect(0,200,80,30);
-	// 	uint32_t foo = timer_Get(1);
-	// 			printUInt(f,4,10,10,40);
-	// 	newFrame();
-	// 	while (timer_Get(1) - foo < 32768/6);
-	// 	gColor = 0xA;
-	// 	fillScreen();
-	// }
 
 	// Palette Test
 	// gColor = 0;

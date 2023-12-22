@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -82,6 +82,8 @@ uint8_t row = 0;
 uint8_t offset = 0; //offset
 uint8_t sector = 0;
 
+// The following was generated from "Super CSV"
+
 void (*menuFunction[11])() = {0,buildPattern,buildPattern,buildPattern,leadChange,versionText,0,testGraphic,0,helpText,quitGame};
 uint8_t menuBack[11] = {10,0,0,0,0,0,5,5,5,0,0};
 uint16_t boxIndex[12] = {0,8,16,21,28,37,43,47,54,59,60,60};
@@ -92,7 +94,7 @@ uint8_t boxColor[60] = {5,11,9,12,6,2,1,8,5,8,8,8,8,7,8,8,10,14,7,8,8,8,8,8,9,8,
 uint8_t boxDirect[60] = {1,1,2,3,4,5,9,0,0,0,0,0,0,0,3,0,0,0,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,7,8,0,0,0,0,0,5,0,0,0,0,0,0,5,0,0,0,0,5,0};
 uint16_t textIndex[61] = {0,23,41,54,64,79,91,99,112,124,137,147,155,169,183,193,206,227,242,256,271,284,297,305,313,327,341,355,368,383,386,389,392,395,398,401,414,427,446,460,475,491,500,512,526,535,547,556,567,586,605,628,647,659,668,684,701,719,734,743,755};
 void (*boxFunction[60])() = {modeSet,modeSet,0,0,0,0,0,quitGame,0,drawPattern,0,0,0,gameStart,0,0,drawPattern,randomMode,0,0,0,drawPattern,changeInBoardSize,changeInBoardSize,changeInMineCount,changeInPercent,gameStart,0,0,0,0,0,0,0,0,leadChange,0,swapPrimaries,0,0,0,0,0,0,0,0,0,videoUpdate,accessSet,0,0,0,fpsUpdate,0,0,0,0,0,0,0};
-void* boxPointer[60] = {0,0,0,0,0,0,0,0,0,&gameMode,0,0,0,0,0,0,&gameMode,&gameMode,0,0,0,&gameMode,&sizeX,&sizeY,&chance,&percent,0,0,0,0,0,0,0,0,0,&gameMode,0,&swapAlphaSecondBind,0,0,0,0,0,&safeGuess,&chording,&autoSolver,0,&displayMode,&accessMode,&fadeEffect,&cursorGraphic,&movieIntro,&fpsT,0,&autoSaveMax,0,0,0,0,0};
+void* boxPointer[60] = {0,0,0,0,0,0,0,0,0,&gameMode,0,0,0,0,0,0,&gameMode,&gameMode,0,0,0,&gameMode,&sizeX,&sizeY,&mineCount,&percent,0,0,0,0,0,0,0,0,0,&gameMode,0,&swapAlphaSecondBind,0,0,0,0,0,&safeGuess,&chording,&autoSolver,0,&displayMode,&accessMode,&fadeEffect,&cursorGraphic,&movieIntro,&fpsT,0,&autoSaveMax,0,0,0,0,0};
 uint8_t boxMin[60] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0};
 uint16_t boxMax[60] = {0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,16,0,0,0,0,16,52,27,702,50,0,0,0,0,0,0,0,0,0,16,0,1,0,0,0,0,0,2,1,2,0,3,1,2,1,1,992,0,3,0,0,0,0,0};
 
@@ -107,8 +109,8 @@ void modeSet() {
 // Randomly chooses a gameMode that is not the current gameMode
 void randomMode() {
     srand(seed);
-	uint24_t newGameMode = rand() % (gameModeCount + 1); // Base 1 indexing, refactor/fix this later
-	gameMode = (newGameMode == gameMode) ? ((newGameMode + 1) % (gameModeCount + 1)) : newGameMode;
+	uint24_t newGameMode = rand() % (gameModeCount); // Base 1 indexing, refactor/fix this later
+	gameMode = (newGameMode == gameMode) ? ((newGameMode + 1) % (gameModeCount)) : newGameMode;
     gColor = 0xF0;
     fillRect(188, 20 + (0 * 24), 14, 8); //Clears characters
     gColor = Black;
@@ -212,20 +214,20 @@ void changeInBoardSize() {
 
 void changeInPercent() { // Sets Mine Count based on Percentage of Mines
 	uint24_t boardSize = sizeX * sizeY;
-	chance = (boardSize * percent) / 100;
-	if (chance < 8) {
-		chance = 8;
-	} else if (chance > boardSize / 2) { // >50% Mines
-		chance = boardSize / 2;
+	mineCount = (boardSize * percent) / 100;
+	if (mineCount < 8) {
+		mineCount = 8;
+	} else if (mineCount > boardSize / 2) { // >50% Mines
+		mineCount = boardSize / 2;
 	}
 	{
 		const uint24_t yCord = 20 + (24 * 3);
 		gColor = 0xF3;
 		fillRect(181, yCord, 20, 8);
 		gColor = 0;
-		text6x8(195, yCord, (chance % 10));
-		text6x8(188, yCord, ((chance / 10) % 10));
-		text6x8(181, yCord, ((chance / 100))); // Undefined above 2599
+		text6x8(195, yCord, (mineCount % 10));
+		text6x8(188, yCord, ((mineCount / 10) % 10));
+		text6x8(181, yCord, ((mineCount / 100))); // Undefined above 2599
 		// if (mineCount > 100) {
 		// 	text6x8(181, yCord, ((mineCount / 100))); // Undefined above 2599
 		// 	text6x8(174, yCord, 0x1C); // << Symbol
@@ -238,7 +240,7 @@ void changeInPercent() { // Sets Mine Count based on Percentage of Mines
 
 void changeInMineCount() { // Sets Percentage of Mines based on Mine Count
 	uint24_t boardSize = sizeX * sizeY;
-	percent = (chance * 100) / boardSize;
+	percent = (mineCount * 100) / boardSize;
 	if (percent < 5) {
 		percent = 50;
 		changeInPercent();

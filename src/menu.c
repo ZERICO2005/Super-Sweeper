@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -288,7 +288,7 @@ void dial(uint16_t boxOffset, uint8_t boxRow) { //uint8_t src, uint8_t des
     }
 	setNumber(box,value);
 
-    if ((boxType[box] & F) && boxFunction[box] != NULL) { //Function
+    if ((boxType[box] & Scroll) && boxFunction[box] != NULL) { //Function
         (*boxFunction[box])();
 		value = getNumber(box); // Keeps track of any changes made by a function
     }

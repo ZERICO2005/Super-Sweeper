@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Endless-Super-Sweeper
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -137,6 +137,9 @@
 	#define SEEK_SET 0
 	#define SEEK_CUR 1
 	#define SEEK_END 2
+	#ifndef EOF
+		#define EOF (-1)
+	#endif
 
 	uint8_t ti_Open(const char* name, const char* mode);
 	int ti_Close(uint8_t handle);

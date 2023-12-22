@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -17,19 +17,19 @@
 
 void pause6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) {
     uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
-    uint8_t* fill = lcd_Ram8 + (yW * 320 + xW);
+    uint8_t* fill = lcd_Ram8 + (yW * LCD_RESX + xW);
     uint8_t b = 1;
 	uint8_t fColor = (gColor << 4) + gColor;
     for (uint8_t y = 0; y < 8; y++) {
         for (uint8_t x = 0; x < 6; x++) {
             *fill = *bitImage & b ? fColor : *fill;
-            fill += 160;
+            fill += (LCD_RESX / 2);
             *fill = *bitImage & b ? fColor : *fill;
-            fill-= 159;
+            fill -= ((LCD_RESX / 2) - 1);
             bitImage++;
         }
         bitImage -= 6;
-        fill += 314; // 320 - 6
+        fill += (LCD_RESX - 6);
         b <<= 1;
     }
 }
@@ -37,8 +37,8 @@ void pause6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) {
 void text6x8b4(uint24_t xW, uint24_t yW, uint8_t lexicon) { //Incompatibile with 0.70.Alpha and later
 	uint24_t bitImage0 = char6x8[lexicon];
     uint24_t bitImage1 = char6x8[lexicon + 1];
-    uint8_t* fill0 = lcd_Ram8 + (yW * 320 + xW);
-    uint8_t* fill1 = fill0 + 1280;
+    uint8_t* fill0 = lcd_Ram8 + (yW * LCD_RESX + xW);
+    uint8_t* fill1 = fill0 + (4 * LCD_RESX);
     uint24_t b = 1;
 	uint8_t fColor = gColor << 4;
     for (uint8_t y = 0; y < 8; y++) {
@@ -51,8 +51,8 @@ void text6x8b4(uint24_t xW, uint24_t yW, uint8_t lexicon) { //Incompatibile with
             fill1++;
             fill0++;
         }
-        fill0 += 157; //320 - 6
-        fill1 += 157;
+        fill0 += ((LCD_RESX - 6) / 2);
+        fill1 += ((LCD_RESX - 6) / 2);
     }
 }
 
@@ -118,7 +118,7 @@ void scoreScreen() { //broken //I shall fix the sorting now that I can code inse
     }
     uint8_t name[3] = {33,33,33};
     gColor = 0;
-    fillRect(0,240,320,120); //Clears the screen
+    memset(&lcd_Ram8[LCD_RESX * LCD_RESY], gColor, LCD_RESX * LCD_RESY / 2); //Clears the screen
     gColor = 7;
     {
         uint24_t x = 8;
@@ -260,10 +260,10 @@ void winScreen() {
         gameFinishTime = systemTime - gameStartTime - gamePauseTime;
     }
     pauseTime = systemTime;
-	lcd_UpBase = 0xD40000 + (320 * 240 * 1);
+	lcd_UpBase = 0xD40000 + (LCD_RESX * LCD_RESY * 1);
     lcd_VideoBit = lcd_Video4bit; //4bit mode
     gColor = 0;
-    fillRect(0,240,320,120); //Clears the screen
+    memset(&lcd_Ram8[LCD_RESX * LCD_RESY], gColor, LCD_RESX * LCD_RESY / 2); //Clears the screen
 
     // if (scoreSort() != 99 || 1) { //Force Debug Run
     //     scoreScreen();
@@ -345,7 +345,7 @@ void gameOver() { //160x120 screen due to poor coding
     lcd_UpBase = 0xD52C00;
     lcd_VideoBit = lcd_Video4bit; //4bit mode
     gColor = 0;
-    fillRect(0,240,320,120); //Clears the screen
+    memset(&lcd_Ram8[LCD_RESX * LCD_RESY], gColor, LCD_RESX * LCD_RESY / 2); //Clears the screen
 
     gColor = 7;
     {   
@@ -412,7 +412,7 @@ void gameOver() { //160x120 screen due to poor coding
 void pause() {
     pauseTime = systemTime;
     gColor = 0;
-    fillRect(0,240,320,120); //Clears the screen
+    memset(&lcd_Ram8[LCD_RESX * LCD_RESY], gColor, LCD_RESX * LCD_RESY / 2); //Clears the screen
 
     gColor = 7;
     {   

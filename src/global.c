@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -34,11 +34,10 @@ int24_t tile;
 
 /* Parameters */
 
-#define gameModeCount 16
 uint24_t gameMode = 0;
 uint24_t sizeX = 25; //Board X
 uint24_t sizeY = 15; //Board Y
-uint24_t chance = 54; //Refactor
+uint24_t mineCount = 54; //Refactor
 
 /* Parameters */
 

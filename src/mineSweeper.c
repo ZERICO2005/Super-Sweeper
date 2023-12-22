@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -70,44 +70,44 @@ void displaySeg7(uint24_t i, uint8_t b, struct dataSeg7* lcd) { //Number, Digits
     uint8_t lo = lcd->offC;
     
     uint24_t pow = 1;
-    uint24_t z = y * 320; //Constant offset
-    x += (d - 1) * 9; //d * 9 - 9 == 9 * (d - 1)
+    uint24_t z = y * LCD_RESX; //Constant offset
+    x += (d - 1) * 9;
     for (uint8_t n = 0; n < d; n++) { //Since d was decremented
         uint8_t j = seg7[(i / pow) % b];
         gColor = (j & 64) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (0 * 320 + 1)]) { // Checks for change in color
+        if (gColor != lcd_Ram8[z + x + (0 * LCD_RESX + 1)]) { // Checks for change in color
             horiz(x+1,y,6);
             horiz(x+2,y+1,4);
         }
         gColor = (j & 32) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (6 * 320 + 2)]) {
+        if (gColor != lcd_Ram8[z + x + (6 * LCD_RESX + 2)]) {
             horiz(x+2,y+6,4);
             horiz(x+1,y+7,6);
             horiz(x+2,y+8,4);
         }
         gColor = (j & 16) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (13 * 320 + 2)]) {
+        if (gColor != lcd_Ram8[z + x + (13 * LCD_RESX + 2)]) {
             horiz(x+2,y+13,4);
             horiz(x+1,y+14,6);
         }
         gColor = (j & 8) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (1 * 320 + 0)]) {
+        if (gColor != lcd_Ram8[z + x + (1 * LCD_RESX + 0)]) {
             vert(x,y+1,6);
             vert(x+1,y+2,4);
         }
         gColor = (j & 4) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (8 * 320 + 0)]) {
+        if (gColor != lcd_Ram8[z + x + (8 * LCD_RESX + 0)]) {
             vert(x,y+8,6);
             vert(x+1,y+9,4);
         }
         x += 6;
         gColor = (j & 2) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (2 * 320 + 0)]) {
+        if (gColor != lcd_Ram8[z + x + (2 * LCD_RESX + 0)]) {
             vert(x,y+2,4);
             vert(x+1,y+1,6);
         }
         gColor = (j & 1) ? hi : lo;
-        if (gColor != lcd_Ram8[z + x + (9 * 320 + 0)]) {
+        if (gColor != lcd_Ram8[z + x + (9 * LCD_RESX + 0)]) {
             vert(x,y+9,4);
             vert(x+1,y+8,6);
         }
@@ -139,18 +139,18 @@ void quake() {
     if (accessMode == 0) { //Remove this
         delay32K(32768/15); //Waits 32768Hz / FPS
         uint24_t shake;
-        int8_t amount = chance / 3;
+        int8_t amount = mineCount / 3;
         if (amount < 12) {
             amount = 12;
         }
-        if (amount > 90 || chance > 255) {
+        if (amount > 90 || mineCount > 255) {
             amount = 90;
         }
 		srand(timer_Get(1));
         for (uint8_t i = 0; i < amount; i++) {
-            shake = 0xD40000 - (2560 * 3) - (8 * 3);
+            shake = 0xD40000 - ((LCD_RESX * 8) * 3) - (8 * 3);
             shake += 8 * (rand() % 7);
-            shake += 2560 * (rand() % 7);
+            shake += (LCD_RESX * 8) * (rand() % 7);
             lcd_UpBase = shake;
 			newFrame();
             delay32K(32768/20);
@@ -259,26 +259,26 @@ void flagDraw(uint8_t symbol, uint24_t xP, uint24_t yP) {
     symbol <<= 1;
     uint16_t bitImage0 = char5x5[symbol];
     uint16_t bitImage1 = char5x5[symbol + 1];
-    uint8_t* z = lcd_Ram8 + (yP * 320 + xP);
+    uint8_t* z = lcd_Ram8 + (yP * LCD_RESX + xP);
     for (uint8_t y = 0; y < 5; y++) {
         for (uint8_t x = 0; x < 5; x++) {
             if (bitImage0 & 1) {
                 *z = gColor;
             }
-            z += 960;
+            z += (LCD_RESX * 3);
             if (bitImage1 & 1) {
                 *z = gColor;
             }
             bitImage0 >>= 1;
             bitImage1 >>= 1;
-            z -= 959; // 960 - 1
+            z -= (LCD_RESX * 3) - 1;
         }
-        z += 315; // 320 - 5;
+        z += (LCD_RESX - 5);
     }
 }
 
 /* 
-//Legacy, keep this function around
+// Legacy Flag Counter Code
 void flagCount() {
     gColor = 15;
     for (int24_t z = 15; z <= 35; z += 10) { //Flag Counter
@@ -305,7 +305,7 @@ void flagCount() {
 //        flagLCD.onC = color[((plags / 100) % 10)] & 7;
 //        flagLCD.offC = color[((plags / 100) % 10)] | 8;
 
-//Slow, but its the only way to do signed flag counts for now
+// Slow, but its the only way to do signed flag counts for now
 void flagCount() { //Add a color number mode for nostalga
     uint16_t plags = abs(flags);
     flagLCD.x = 11;
@@ -337,7 +337,7 @@ void glyph(int16_t space, uint8_t symbol) {
     }
     if (font == 2) { //6x8 Font
         uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
-        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
+        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
         uint8_t b = 1;
         for (uint8_t y = 0; y < 8; y++) {
             for (uint8_t x = 0; x < 6; x++) {
@@ -346,18 +346,18 @@ void glyph(int16_t space, uint8_t symbol) {
                 z++;
             }
             bitImage -= 6;
-            z += 314; // 320 - 6
+            z += (LCD_RESX - 6);
             b <<= 1;
         }
         
-        if (symbol == 26) {
+        if (symbol == gFlag) {
             gColor = flagColor;
             fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
-        } else if (symbol == 25) {
+        } else if (symbol == gMine) {
             //gColor = 7;
-            z -= 1918; // -320*6 + 2
+            z -= (LCD_RESX * 6) - 2;
             *z = 7; // 2,2 // White
-            z += 319; //320 - 1
+            z += (LCD_RESX - 1);
             *z = 7; // 1,3 // White
         }
         return;
@@ -366,35 +366,35 @@ void glyph(int16_t space, uint8_t symbol) {
         uint16_t bitImage0 = char5x5[symbol];
         uint16_t bitImage1 = char5x5[symbol + 1];
         // uint24_t z1 = z0 + 960;
-        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
+        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
         for (uint8_t y = 0; y < 5; y++) {
             for (uint8_t x = 0; x < 5; x++) {
                 if (bitImage0 & 1) {
                     *z = gColor;
                 }
-                z += 960;
+                z += (LCD_RESX * 3);
                 if (bitImage1 & 1) {
                     *z = gColor;
                 }
                 bitImage0 >>= 1;
                 bitImage1 >>= 1;
-                z -= 959; // 960 - 1
+                z -= (LCD_RESX * 3) - 1;
             }
-            z += 315; // 320 - 5;
+            z += LCD_RESX - 5;
         }
-        if (symbol == 52) {
+        if (symbol == 2 * gFlag) {
             gColor = flagColor;
             fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
-        } else if (symbol == 50) {
+        } else if (symbol == 2 * gMine) {
             //gColor = 7;
-            z -= 1279; // -320*4 + 1
+            z -= (LCD_RESX * 4) - 1;
             *z = 7; // 1,1 // White
         }
         return;
     }
     //3x5 Font
     uint16_t bitImage = char3x5[symbol];
-    uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * 320 + (space % marX * disX + posX + padX));
+    uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
     for (uint8_t y = 0; y < 5; y++) {
         for (uint8_t x = 0; x < 3; x++) {
             if (bitImage & 1) {
@@ -403,7 +403,7 @@ void glyph(int16_t space, uint8_t symbol) {
             bitImage >>= 1;
             z++;
         }
-        z += 317; // 320 - 3
+        z += (LCD_RESX - 3);
     }
     if (symbol == gFlag) {
         gColor = flagColor;
@@ -448,8 +448,9 @@ void floodFill() {
             u = order[offPos + i];
             v = order[offPos + i + 1];
             const uint24_t square = target + (v * marX) + u;
-            if (board[square] != 255 && state[square] != 1) { //If tile is not out of bounds and not cleared yet
-                state[square] = 1;
+			
+            if (board[square] != 255 && state[square] != sCLEARED) { //If tile is not out of bounds and not cleared yet
+                state[square] = sCLEARED;
                 cleared++;
                 score += 12;
                 if (board[square] == 0) {
@@ -457,10 +458,10 @@ void floodFill() {
                     max++;
                 }
                 fillTile(square, 0);
-                if (flag[square] == 1) {
+                if (flag[square] == fFLAG) {
                     flags++;
                     score -= 10;
-                    flag[square] = 0;
+                    flag[square] = fBLANK;
                 }
             }
         }
@@ -536,7 +537,7 @@ void mineGenerate() {
 	currentGameSeed = seed;
     srand(currentGameSeed);
     uint24_t z;
-    for (uint24_t i = 0; i < chance; i++) {
+    for (uint24_t i = 0; i < mineCount; i++) {
         do {
             z = (((rand() % sizeY) + borderIndexes) * marX) + (rand() % sizeX) + borderIndexes;
         } while (board[z] == gMine || mineCheck(z));
@@ -570,10 +571,10 @@ void mineGenerate() {
     srand(seed);
     const uint24_t sizeZ = sizeX * sizeY;
 
-    //fillMemory(25,flag,chance); //ASM LDIR
+    //fillMemory(25,flag,mineCount); //ASM LDIR
 
     uint8_t* fill = flag; //Address of flag array
-    for (uint24_t i = 0; i < chance; i++) { //Slower because Clang is unware of LDIR
+    for (uint24_t i = 0; i < mineCount; i++) { //Slower because Clang is unware of LDIR
         *fill = 25;
         fill++;
     }
@@ -633,11 +634,13 @@ void mineGenerate() {
 */
 
 void chord() {
+	return;
     lcd_CrsrX = ((tile % marX) - 2) * disX + posX;
     lcd_CrsrY = ((tile / marX) - 2) * disY + posY;
 }
 uint8_t gridType[25];
-void cursorSetup() {
+void cursorSetup() { // Code may crash the calculator
+	return; // Disabled for now
     //memcpy(lcd_CrsrImage, chordImage, 1024);
 	//uint8_t* ci = (uint8_t*)lcd_CrsrImage;
     /* //Crashes calculator and maybe broken
@@ -704,12 +707,12 @@ void drawGame() {
                 initialPalette[i] = 330;
             }
         }
-        for (uint24_t rY = 4; rY < 240; rY += 32) {
-            for (uint24_t rX = 4; rX < 320; rX += 32) {
+        for (uint24_t rY = 4; rY < LCD_RESY; rY += 32) {
+            for (uint24_t rX = 4; rX < LCD_RESX; rX += 32) {
                 gColor = 18;
-                text6x8(rX, rY, 25);
+                text6x8(rX, rY, gMine);
                 gColor = 19;
-                text6x8(rX + 16, rY, 26);
+                text6x8(rX + 16, rY, gFlag);
                 gColor = 20;
                 text6x8(rX, rY + 16, 30);
                 gColor = 21;
@@ -744,7 +747,7 @@ void drawGame() {
     }
     if (!(disX & 1)) { //% 2
         gColor = (darkMode != 0) ? 0x07 : 0x00; //Inverted Colors
-        vert(319, 0, 240);
+        vert(LCD_RESX - 1, 0, LCD_RESY);
     }
     //Border Lines
     gColor = (8);
@@ -768,12 +771,12 @@ void drawGame() {
         uint16_t bitImage1 = char5x5[53];
         uint16_t bitImage2 = char5x5[50];
         uint16_t bitImage3 = char5x5[51];
-        uint24_t z0 = VRAM + (7 * 320) + 7;
+        uint24_t z0 = VRAM + (7 * LCD_RESX) + 7;
         uint24_t z1 = z0 + 960;
-        uint24_t z2 = VRAM + (7 * 320) + 47;
+        uint24_t z2 = VRAM + (7 * LCD_RESX) + 47;
         uint24_t z3 = z2 + 960;
         gColor = 0;
-        for (uint24_t y = 0; y < 1600; y += 320) {
+        for (uint24_t y = 0; y < 1600; y += LCD_RESX) {
             for (uint24_t x = 0; x < 5; x++) {
                 if (bitImage0 & 1) {
                     plotFast(z0 + y + x);
@@ -796,7 +799,7 @@ void drawGame() {
         gColor = flagColor;
         fillRect(7, 7, 2, 2);
         gColor = 7;
-        plotFast(VRAM + (320 * 8) + 48); //x48 y8
+        plotFast(VRAM + (LCD_RESX * 8) + 48); //x48 y8
     }*/
 
     for (uint24_t x = 154; x <= 164; x++) {
@@ -899,11 +902,11 @@ void resetGame() {
     gamePauseTime = systemTime;
     offPos = orderPos[gameMode];
     offLen = orderPos[gameMode + 1] - orderPos[gameMode];
-    if (chance > ((sizeX) * (sizeY)) / 2) { //Caps game at 50% mines
-        chance = ((sizeX) * (sizeY)) / 2;
+    if (mineCount > ((sizeX) * (sizeY)) / 2) { //Caps game at 50% mines
+        mineCount = ((sizeX) * (sizeY)) / 2;
     }
-    flags = chance;
-    mines = chance;
+    flags = mineCount;
+    mines = mineCount;
     tile = (marX * 7) + 7; //Initial tile
 
     //3: Graphics
@@ -938,13 +941,13 @@ void autoChord() {
         v = order[offPos + i + 1];
         square = tile + (v * marX) + u;
         if (board[square] != 255) { //If tile is in bounds
-            if (board[square] == 25) {
+            if (board[square] == gMine) {
                 mC++;
             }
-            if (flag[square] == 1 || (board[square] == 25 && state[square] != 0)) {
+            if (flag[square] == fFLAG || (board[square] == gMine && state[square] != sHIDDEN)) {
                 fC++;
             }
-            if (state[square] != 1 || board[square] == 25) { //== 0
+            if (state[square] != sCLEARED || board[square] == gMine) { //== 0
                 bC++;
             }
         }
@@ -956,8 +959,8 @@ void autoChord() {
             u = order[offPos + i];
             v = order[offPos + i + 1];
             square = tile + (v * marX) + u;
-            if (board[square] != 255 && state[square] != 1 && flag[square] != 1) { //If tile is not out of bounds and not cleared yet
-                state[square] = 1;
+            if (board[square] != 255 && state[square] != sCLEARED && flag[square] != fFLAG) { //If tile is not out of bounds and not cleared yet
+                state[square] = sCLEARED;
                 //Floodfill
                 cleared++;
                 if (board[square] == 0) {
@@ -976,8 +979,8 @@ void autoChord() {
             u = order[offPos + i];
             v = order[offPos + i + 1];
             square = tile + (v * marX) + u;
-            if (board[square] != 255 && state[square] != 1 && flag[square] != 1) { //If tile is not out of bounds and not cleared yet
-                flag[square] = 1;
+            if (board[square] != 255 && state[square] != sCLEARED && flag[square] != fFLAG) { //If tile is not out of bounds and not cleared yet
+                flag[square] = fFLAG;
                 flags--;
                 gColor = 15;
                 fillRect(square % marX * disX + 1 + posX, square / marX * disY + 1 + posY, disX - 3, disY - 3);
@@ -1020,7 +1023,7 @@ void gameLoop() {
     if (status == QUIT) {
         status = OKAY;
     }
-    if (cursorAllow) {
+    if (cursorAllow) { // Resets the cursor
         lcd_CrsrConfig = 0x00000000;
         lcd_CrsrCtrl = 0x00000000;
         lcd_Timing2 = (uint32_t)(lcd_Timing2 & ~(uint32_t)0x03FF0000) | (uint32_t)(240 - 1) << 16;
@@ -1066,11 +1069,11 @@ void gameControl() {
             if (keyReady & CHORD) {
                 if ((kb_Data[3] & kb_GraphVar)) {
                     keyReset(cHORD);
-                    lcd_CrsrCtrl = 0x00000001;
+                    //lcd_CrsrCtrl = 0x00000001;
 					expression(eCHORD);
                     chordCheck = 1;
                 } else if (chordCheck == 1) {
-                    lcd_CrsrCtrl = 0x00000000;
+                    //lcd_CrsrCtrl = 0x00000000;
                     if (win) {
 						expression(eHAPPY);
                     } else {
@@ -1186,7 +1189,7 @@ void gameControl() {
 
         if (autoLoss == 1 && win == true) {
             expression(eSAD);
-            lcd_CrsrCtrl = 0x00000000;
+            //lcd_CrsrCtrl = 0x00000000;
             quake();
             flash();
             gameOver();
@@ -1224,28 +1227,28 @@ void gameControl() {
 			pause();
 		}
 
-		// if ((keyReady & OTHER) && (kb_Data[6] & kb_Add)) {
-		// 	keyReset(oTHER);
-		// 	loadGame(NULL,state,flag);
-		// }
-		//if ((keyReady & OTHER) && (kb_Data[6] & kb_Sub)) {
-		// if((keyReady & OTHER) && kb_Data[6] & kb_Power) {
-		// 	keyReset(oTHER);
-		// 	printf("\nSaving Game");
-		// 	GameSaveFile gameSaveFile;
-		// 	gameSaveFile.Version[0] = PROGRAM_V_MAJOR;
-		// 	gameSaveFile.Version[1] = PROGRAM_V_MINOR;
-		// 	gameSaveFile.Version[2] = PROGRAM_V_PATCH;
-		// 	gameSaveFile.Version[3] = 0;
-		// 	gameSaveFile.TimeElapsed = systemTime - gameStartTime - gamePauseTime;
-		// 	gameSaveFile.Score = score;
-		// 	gameSaveFile.Seed = currentGameSeed;
-		// 	gameSaveFile.SizeX = sizeX;
-		// 	gameSaveFile.SizeY = sizeY;
-		// 	gameSaveFile.CursorPos = tile;
-		// 	gameSaveFile.GameState = ((cheater & 1) << 1) | (win & 1);
-		// 	gameSaveFile.GameMode = gameMode;
-		// 	saveGame(&gameSaveFile,state,flag) == false;
-		// }
+		// Game Saving doesn't currently work
+			// if ((keyReady & OTHER) && (kb_Data[6] & kb_Add)) {
+			// 	keyReset(oTHER);
+			// 	loadGame(NULL,state,flag);
+			// }
+			// if ((keyReady & OTHER) && (kb_Data[6] & kb_Sub)) {
+			// 	keyReset(oTHER);
+			// 	printf("\nSaving Game");
+			// 	GameSaveFile gameSaveFile;
+			// 	gameSaveFile.Version[0] = PROGRAM_V_MAJOR;
+			// 	gameSaveFile.Version[1] = PROGRAM_V_MINOR;
+			// 	gameSaveFile.Version[2] = PROGRAM_V_PATCH;
+			// 	gameSaveFile.Version[3] = 0;
+			// 	gameSaveFile.TimeElapsed = systemTime - gameStartTime - gamePauseTime;
+			// 	gameSaveFile.Score = score;
+			// 	gameSaveFile.Seed = currentGameSeed;
+			// 	gameSaveFile.SizeX = sizeX;
+			// 	gameSaveFile.SizeY = sizeY;
+			// 	gameSaveFile.CursorPos = tile;
+			// 	gameSaveFile.GameState = ((cheater & 1) << 1) | (win & 1);
+			// 	gameSaveFile.GameMode = gameMode;
+			// 	saveGame(&gameSaveFile,state,flag) == false;
+			// }
     }
 }

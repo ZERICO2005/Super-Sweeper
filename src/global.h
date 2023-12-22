@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -38,24 +38,24 @@ extern int24_t tile;
 
 /* Parameters */
 
-#define gameModeCount 16
+#define gameModeCount 17
 extern uint24_t gameMode;
-extern uint24_t sizeX; //Board X
-extern uint24_t sizeY; //Board Y
-extern uint24_t chance; //Refactor
+extern uint24_t sizeX; // Board X
+extern uint24_t sizeY; // Board Y
+extern uint24_t mineCount;
 
 /* Parameters */
 
 /* Game Backend */
 
-extern uint16_t offPos; //gameMode index
-extern uint8_t offLen; //gameMode length
-extern uint8_t marX; //Array X
-extern uint8_t marY; //Array Y
+extern uint16_t offPos; // gameMode index
+extern uint8_t offLen; // gameMode length
+extern uint8_t marX; // Array X
+extern uint8_t marY; // Array Y
 extern int24_t posX;
 extern int24_t posY;
 
-extern uint8_t disX; //Define spacing between squares
+extern uint8_t disX; // Defines spacing between squares
 extern uint8_t disY;
 extern uint8_t padX;
 extern uint8_t padY;
@@ -145,19 +145,18 @@ extern uint16_t initialPalette[256];
 
 //const uint8_t CLICKABLE = 0b00000100; const uint8_t SELECT1 = 0b00000001; const uint8_t SELECT2 = 0b00000010; const uint8_t SELECT3 = 0b00000011;           red darkRed 0grey 1grey
 enum guiType {Click = 1, Scroll = 2, Dial = 4, Direct = 8, Value = 16, Dot = 32, BoolToggle = 64, Text = 128};
-enum GUITYPE { C = 1, F = 2, N = 4, P = 8, V = 16, D = 32, B = 64, T = 128};
 
 /* Global */
-//Video
+// Video
 
 
 
-//Graphics
+// Graphics
 
-//Utilities
-extern uint32_t seed; //Used for random number generation //frameTime variable
+// Utilities
+extern uint32_t seed; // Used for random number generation // frameTime variable
 extern uint32_t delta;
-extern uint32_t frameStart; //When the new frame began
+extern uint32_t frameStart; // When the new frame began
 extern uint32_t clockMax;
 extern uint32_t clockTime;
 

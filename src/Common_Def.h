@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Endless-Super-Sweeper
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -14,10 +14,13 @@
 
 #define PROGRAM_V_MAJOR 0
 #define PROGRAM_V_MINOR 80
-#define PROGRAM_V_PATCH 0
+#define PROGRAM_V_PATCH 1
 
 //#define PLATFORM_TI84CE
 #define PLATFORM_X86
+
+//#define DEBUG_FRAMERATE_COUNTER // Shows FPS and Frame-Time
+//#define DEBUG_FRAME_SHIFT // Use the numberpad to move the screen around
 
 #ifdef PLATFORM_TI84CE
 	/* Disabled Functions */

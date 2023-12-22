@@ -17,7 +17,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-uint8_t scale = 2; // Integer Scaling
+// Integer Scaling
+const uint8_t scale = 2;
 
 uint8_t PreCalc_RGB1555[65536 * 3];
 uint8_t PreCalc_BGR1555[65536 * 3];

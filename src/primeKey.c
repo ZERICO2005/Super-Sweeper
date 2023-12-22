@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -103,15 +103,17 @@ void keyPress() { //Makes the game run at a constant FPS
 
     systemTime = frameTime;
 
-    if (fpsCounter) {
-        if (frameDelta > clockMax) { clockMax = frameDelta; } //Tracks the highest frame time
-        if (deltaTime(timer_Get(1), clockTime) > (32768 / 6)) { //Displays the highest frame time every 32768/FPS seconds
-            printUInt(clockMax, 5, 10, 2, 22); //Displays frame time
-            printUInt(32768 / clockMax, 3, 10, 2, 31); //Displays FPS
-            clockMax = 0;
-            clockTime = timer_Get(1);
-        }
-    }
+	#ifdef DEBUG_FRAMERATE_COUNTER
+		if (fpsCounter) {
+			if (frameDelta > clockMax) { clockMax = frameDelta; } //Tracks the highest frame time
+			if (deltaTime(timer_Get(1), clockTime) > (32768 / 6)) { //Displays the highest frame time every 32768/FPS seconds
+				printUInt(clockMax, 5, 10, 2, 22); //Displays frame time
+				printUInt(32768 / clockMax, 3, 10, 2, 31); //Displays FPS
+				clockMax = 0;
+				clockTime = timer_Get(1);
+			}
+		}
+	#endif
 
     shiftScreen();
 

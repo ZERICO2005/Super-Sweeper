@@ -1,6 +1,6 @@
 /*
 **	Author: zerico2005 (2023)
-**	Project: Super-Sweeper-0.77.1
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -31,29 +31,13 @@ void horiz(uint24_t x1, uint24_t y, uint24_t x2); //x start, y postion, x length
 
 void vert(uint24_t x, uint24_t y1, uint24_t y2); //x postion, y start, y length
 
-// void plot(uint24_t x, uint24_t y) { //x position, y position
-//     uint8_t* fill = (uint8_t*)VRAM + x + (y * 320);
-//     *fill = gColor;
-// }
-// void plotFast(uint8_t* z) { //Memory address
-//     *z = gColor;
-// }
-
 #define plot(x,y) lcd_Ram8[(x) + ((y) * 320)] = gColor
 #define plotFast(z) lcd_Ram8[z] = gColor
-
-// void fillScreen() { //Fills buffer 0
-//     const uint24_t g = (gColor << 16) | (gColor << 8) | gColor;
-//     for (uint24_t* w = (uint24_t*)VRAM; w < (uint24_t*)WRAM; w++) { //Optomized to use 24bit
-//         *w = g;
-//     }
-// }
 
 void fillScreen(); //Fills buffer 0
 
 //Text Engine
 void text6x8(uint24_t xW, uint24_t yW, uint8_t lexicon); //x position, y position, letter index
-
 
 void fillText(uint24_t x1, uint24_t y1, uint24_t x2, uint24_t y2); //x start, y start, x length, y length //fillRect() that does not overwrite text
 

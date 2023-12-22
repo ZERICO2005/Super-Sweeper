@@ -8,7 +8,7 @@ set(LIB_PATH "${TOOLCHAIN_PATH}/lib")
 set(SRC_DIR "./src")
 set(SRC_LCD_DIR "./src-lcd")
 
-set(PROJECT_NAME "Endless-Super-Sweeper")
+set(PROJECT_NAME "Super-Sweeper-Windows")
 project(${PROJECT_NAME})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")

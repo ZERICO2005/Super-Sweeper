@@ -237,29 +237,29 @@ uint8_t simulated_ram[16777216];
 
 	int24_t ti_PutC(char ch, uint8_t handle) {
 		if (validate_Ti_File_Handle(handle) == false) {
-			printf_FileIOC("\nError: ti_Write() handle %d is invalid or NULL",handle);
-			return '\0';
+			printf_FileIOC("\nError: ti_PutC() handle %d is invalid or NULL",handle);
+			return EOF;
 		}
 		return putc(ch,ti_File_Handle[handle].file);
 	}
 	int24_t ti_GetC(uint8_t handle) {
 		if (validate_Ti_File_Handle(handle) == false) {
-			printf_FileIOC("\nError: ti_Write() handle %d is invalid or NULL",handle);
-			return '\0';
+			printf_FileIOC("\nError: ti_GetC() handle %d is invalid or NULL",handle);
+			return EOF;
 		}
 		return getc(ti_File_Handle[handle].file);
 	}
 	int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle) {
 		if (validate_Ti_File_Handle(handle) == false) {
-			printf_FileIOC("\nError: ti_Write() handle %d is invalid or NULL",handle);
-			return 0;
+			printf_FileIOC("\nError: ti_Seek() handle %d is invalid or NULL",handle);
+			return EOF;
 		}
 		return fseek(ti_File_Handle[handle].file,offset,origin);
 	}
 
 	uint16_t ti_GetSize(uint8_t handle) {
 		if (validate_Ti_File_Handle(handle) == false) {
-			printf_FileIOC("\nError: ti_Write() handle %d is invalid or NULL",handle);
+			printf_FileIOC("\nError: ti_GetSize() handle %d is invalid or NULL",handle);
 			return 0;
 		}
 		fpos_t currentPos;
