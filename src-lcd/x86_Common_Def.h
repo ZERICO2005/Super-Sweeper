@@ -23,17 +23,18 @@
 #define PLATFORM_WINDOWS
 //#define PLATFORM_LINUX
 
-typedef uint32_t uint24_t;
-typedef int32_t int24_t;
-typedef uint32_t u24;
-typedef int32_t i24;
+typedef signed _BitInt(24) int24_t;
+typedef unsigned _BitInt(24) uint24_t;
 
 typedef uint8_t u8;
 typedef uint16_t u16;
+typedef uint24_t u24;
 typedef uint32_t u32;
 typedef uint64_t u64;
+
 typedef int8_t i8;
 typedef int16_t i16;
+typedef int24_t i24;
 typedef int32_t i32;
 typedef int64_t i64;
 
@@ -59,6 +60,9 @@ typedef double fp64;
 	#define valueLimit(value,minimum,maximum) { if ((value) < (minimum)) { (value) = (minimum); } else if ((value) > (maximum)) { (value) = (maximum); } }
 	#define valueMinimum(value,minimum) { if ((value) < (minimum)) { (value) = (minimum); } }
 	#define valueMaximum(value,maximum) { if ((value) > (maximum)) { (value) = (maximum); } }
+
+	#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+	#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 	#define linearInterpolation(x,x0,x1,y0,y1) ( (y0) + ( (((y1) - (y0)) * ((x) - (x0))) / ((x1) - (x0)) ) )
 	#define linearInterpolationClamp(x,x0,x1,y0,y1) ( ((x) <= (x0)) ? (y0) : ( ((x) >= (x1)) ? (y1) : linearInterpolation((x),(x0),(x1),(y0),(y1)) ) )

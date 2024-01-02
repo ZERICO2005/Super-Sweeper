@@ -13,8 +13,8 @@
 #include <string.h>
 
 #define PROGRAM_V_MAJOR 0
-#define PROGRAM_V_MINOR 80
-#define PROGRAM_V_PATCH 1
+#define PROGRAM_V_MINOR 81
+#define PROGRAM_V_PATCH 0
 
 //#define PLATFORM_TI84CE
 #define PLATFORM_X86
@@ -80,11 +80,6 @@ typedef int64_t i64;
 #ifdef PLATFORM_TI84CE
 	typedef uint24_t u24;
 	typedef int24_t i24;
-#else
-	typedef uint32_t uint24_t;
-	typedef int32_t int24_t;
-	typedef uint32_t u24;
-	typedef int32_t i24;
 #endif
 
 

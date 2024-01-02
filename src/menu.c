@@ -337,7 +337,7 @@ void menuLoop() {
     buildMenu();
     //Code
 
-    while (status == OKAY || 1 == 1) {
+    while (status == OKAY || true) {
         keyPress(); if (status != OKAY) { return; } //KeyPress
  
         fadeColor();
@@ -376,6 +376,7 @@ void menuLoop() {
         }
         if (kb_Data[1] & kb_2nd) {
             if (keyReady & SECOND) {
+				keyReset(sECOND);
                 offset = boxIndex[menuBack[sector]]; //Different order is intentional, otherwise it will summon the RAINBOW OF ULTIMATE DOOM!!!
                 sector = menuBack[sector];
                 row = 0;

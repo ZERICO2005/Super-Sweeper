@@ -12,6 +12,8 @@
 void initLCDcontroller();
 int terminateLCDcontroller();
 
+uint32_t getMouseState(int32_t* posX, int32_t* posY);
+
 void internal_kb_Reset();
 void internal_kb_Scan();
 
@@ -24,5 +26,6 @@ void blit4bpp(uint8_t* data);
 void copyFrame(uint8_t* data);
 
 extern uint8_t darkMode;
+extern bool useMouseInGame;
 
 #endif /* X86_RENDER_H */

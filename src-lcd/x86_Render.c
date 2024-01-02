@@ -18,7 +18,15 @@
 #include <SDL2/SDL.h>
 
 // Integer Scaling
-const uint8_t scale = 2;
+uint8_t scale = 2;
+
+uint8_t darkMode = 0;
+bool useMouseInGame = true;
+
+#define RESX_MINIMUM (LCD_RESX)
+#define RESY_MINIMUM (LCD_RESY)
+#define RESX_MAXIMUM (LCD_RESX * 32)
+#define RESY_MAXIMUM (LCD_RESY * 32)
 
 uint8_t PreCalc_RGB1555[65536 * 3];
 uint8_t PreCalc_BGR1555[65536 * 3];
@@ -35,7 +43,7 @@ void Calculate16BitColor() {
 		for (uint32_t i = 0; i < 65536; i++) {
 			uint16_t c = (uint16_t)i;
 			uint8_t r = (uint8_t)(c & 0x1F);
-			uint8_t g = (uint8_t)((c & 0x3E0) >> 4) + ((g & 0x8000) ? 1 : 0);
+			uint8_t g = (uint8_t)((c & 0x3E0) >> 4) + ((c & 0x8000) ? 1 : 0);
 			uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
 			r *= 8; g *= 4; b *= 8;
 			r += r / 32;
@@ -112,6 +120,18 @@ SDL_Renderer *renderer;
 SDL_Window *window;
 SDL_Texture* texture;
 
+/* Mouse Handling */
+	uint32_t getMouseState(int32_t* posX, int32_t* posY) {
+		int32_t x;
+		int32_t y;
+		uint32_t state = SDL_GetMouseState(&x,&y);
+		x /= scale;
+		y /= scale;
+		if (posX != NULL) { *posX = x; }
+		if (posY != NULL) { *posY = y; }
+		return state;
+	}
+
 /* Pointers */
 
 uint8_t _VRAM[153600];
@@ -165,7 +185,7 @@ struct bound expandedPos[56] = {
 
 void outputVRAM();
 void initLCDcontroller();
-void copyFrame();
+
 int terminateLCDcontroller();
 void displayFrame();
 
@@ -342,122 +362,81 @@ void blit16bpp(uint8_t* data) {
 		default:
 			PreCalc16 = (lcd_VideoMode & 0x100) ? PreCalc_BGR555 : PreCalc_RGB555;
 	};
-	if (scale <= 1) {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX; x++) {
-				uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
-				c *= 3;
+	size_t w = 0;
+	size_t z = 0;
+	for (uint32_t y = 0; y < LCD_RESY; y++) {
+		for (uint32_t x = 0; x < LCD_RESX; x++) {
+			uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
+			c *= 3;
+			for (uint8_t s = 0; s < scale; s++) {
 				data[w] = PreCalc16[c]; w++;
 				data[w] = PreCalc16[c + 1]; w++;
 				data[w] = PreCalc16[c + 2]; w++;
-				z++;
 			}
+			z++;
 		}
-	} else {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX; x++) {
-				uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
-				c *= 3;
-				for (uint8_t s = 0; s < scale; s++) {
-					data[w] = PreCalc16[c]; w++;
-					data[w] = PreCalc16[c + 1]; w++;
-					data[w] = PreCalc16[c + 2]; w++;
-				}
-				z++;
-			}
-			for (uint8_t s = 0; s < scale - 1; s++) {
-				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
-				w += (LCD_RESX * scale * 3);
-			}
+		w += Master.pitch - (LCD_RESX * scale * 3);
+		for (uint8_t s = 0; s < scale - 1; s++) {
+			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
+			w += Master.pitch;
 		}
 	}
 }
 
 void blit8bpp(uint8_t* data) {
-    if (scale == 1) {
-        uint32_t w = 0;
-        uint32_t z = 0;
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX; x++) {
-                videoCopyArray;
-                data[w] = colorR[c]; w++;
-                data[w] = colorG[c]; w++;
-                data[w] = colorB[c]; w++;
-                z++;
-            }
-        }
-    } else {
-        uint32_t w = 0;
-        uint32_t z = 0;
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX; x++) {
-				videoCopyArray;
-				for (uint8_t s = 0; s < scale; s++) {
-					data[w] = colorR[c]; w++;
-					data[w] = colorG[c]; w++;
-					data[w] = colorB[c]; w++;
-				}
-				z++;
+	size_t w = 0;
+	size_t z = 0;
+	for (uint32_t y = 0; y < LCD_RESY; y++) {
+		for (uint32_t x = 0; x < LCD_RESX; x++) {
+			videoCopyArray;
+			for (uint8_t s = 0; s < scale; s++) {
+				data[w] = colorR[c]; w++;
+				data[w] = colorG[c]; w++;
+				data[w] = colorB[c]; w++;
 			}
-			for (uint8_t s = 0; s < scale - 1; s++) {
-				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
-				w += (LCD_RESX * scale * 3);
-			}
-        }
-    }
+			z++;
+		}
+		w += Master.pitch - (LCD_RESX * scale * 3);
+		for (uint8_t s = 0; s < scale - 1; s++) {
+			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
+			w += Master.pitch;
+		}
+	}
 }
+
 void blit4bpp(uint8_t* data) {
 	const uint32_t PixelsPerByte = 2;
-    if (scale == 1) {
-        uint32_t w = 0;
-        uint32_t z = 0;
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-                videoCopyArray;
-                data[w] = colorR[c & 0xF]; w++;
-                data[w] = colorG[c & 0xF]; w++;
-                data[w] = colorB[c & 0xF]; w++;
-                data[w] = colorR[(c >> 4) & 0xF]; w++;
-                data[w] = colorG[(c >> 4) & 0xF]; w++;
-                data[w] = colorB[(c >> 4) & 0xF]; w++;
-                z++;
-            }
-        }
-    } else {
-        uint32_t w = 0;
-        uint32_t z = 0;
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-				videoCopyArray;
-				for (uint8_t s = 0; s < scale; s++) {
-					data[w] = colorR[c & 0xF]; w++;
-					data[w] = colorG[c & 0xF]; w++;
-					data[w] = colorB[c & 0xF]; w++;
-					data[w] = colorR[(c >> 4) & 0xF]; w++;
-					data[w] = colorG[(c >> 4) & 0xF]; w++;
-					data[w] = colorB[(c >> 4) & 0xF]; w++;
-				}
-				z++;
+	size_t w = 0;
+	size_t z = 0;
+	for (uint32_t y = 0; y < LCD_RESY; y++) {
+		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+			videoCopyArray;
+			for (uint8_t s = 0; s < scale; s++) {
+				data[w] = colorR[c & 0xF]; w++;
+				data[w] = colorG[c & 0xF]; w++;
+				data[w] = colorB[c & 0xF]; w++;
+				data[w] = colorR[(c >> 4) & 0xF]; w++;
+				data[w] = colorG[(c >> 4) & 0xF]; w++;
+				data[w] = colorB[(c >> 4) & 0xF]; w++;
 			}
-			for (uint8_t s = 0; s < scale - 1; s++) {
-				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
-				w += (LCD_RESX * scale * 3);
-			}
-        }
-    }
+			z++;
+		}
+		w += Master.pitch - (LCD_RESX * scale * 3);
+		for (uint8_t s = 0; s < scale - 1; s++) {
+			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
+			w += Master.pitch;
+		}
+	}
 }
+
 void blit2bpp(uint8_t* data) {
 	const uint32_t PixelsPerByte = 4;
-	if (scale == 1) {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-				videoCopyArray;
+	size_t w = 0;
+	size_t z = 0;
+	for (uint32_t y = 0; y < LCD_RESY; y++) {
+		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+			videoCopyArray;
+			for (uint8_t s = 0; s < scale; s++) {
 				data[w] = colorR[c & 0x3]; w++;
 				data[w] = colorG[c & 0x3]; w++;
 				data[w] = colorB[c & 0x3]; w++;
@@ -470,79 +449,41 @@ void blit2bpp(uint8_t* data) {
 				data[w] = colorR[(c >> 6) & 0x3]; w++;
 				data[w] = colorG[(c >> 6) & 0x3]; w++;
 				data[w] = colorB[(c >> 6) & 0x3]; w++;
-				z++;
 			}
+			z++;
 		}
-	} else {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-				videoCopyArray;
-				for (uint8_t s = 0; s < scale; s++) {
-					data[w] = colorR[c & 0x3]; w++;
-					data[w] = colorG[c & 0x3]; w++;
-					data[w] = colorB[c & 0x3]; w++;
-					data[w] = colorR[(c >> 2) & 0x3]; w++;
-					data[w] = colorG[(c >> 2) & 0x3]; w++;
-					data[w] = colorB[(c >> 2) & 0x3]; w++;
-					data[w] = colorR[(c >> 4) & 0x3]; w++;
-					data[w] = colorG[(c >> 4) & 0x3]; w++;
-					data[w] = colorB[(c >> 4) & 0x3]; w++;
-					data[w] = colorR[(c >> 6) & 0x3]; w++;
-					data[w] = colorG[(c >> 6) & 0x3]; w++;
-					data[w] = colorB[(c >> 6) & 0x3]; w++;
-				}
-				z++;
-			}
-			for (uint8_t s = 0; s < scale - 1; s++) {
-				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
-				w += (LCD_RESX * scale * 3);
-			}
+		w += Master.pitch - (LCD_RESX * scale * 3);
+		for (uint8_t s = 0; s < scale - 1; s++) {
+			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
+			w += Master.pitch;
 		}
 	}
 }
 
 void blit1bpp(uint8_t* data) {
 	const uint32_t PixelsPerByte = 8;
-	if (scale == 1) {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-				videoCopyArray;
-				for (uint8_t b = 0; b < PixelsPerByte; b++) {
+	size_t w = 0;
+	size_t z = 0;
+	for (uint32_t y = 0; y < LCD_RESY; y++) {
+		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
+			videoCopyArray;
+			for (uint8_t s = 0; s < scale; s++) {
+				for (uint8_t b = 0; b < 8; b++) {
 					data[w] = colorR[(c >> b) & 0x1]; w++;
 					data[w] = colorG[(c >> b) & 0x1]; w++;
 					data[w] = colorB[(c >> b) & 0x1]; w++;
 				}
-				z++;
 			}
+			z++;
 		}
-	} else {
-		uint32_t w = 0;
-		uint32_t z = 0;
-		for (uint32_t y = 0; y < LCD_RESY; y++) {
-			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-				videoCopyArray;
-				for (uint8_t s = 0; s < scale; s++) {
-					for (uint8_t b = 0; b < 8; b++) {
-						data[w] = colorR[(c >> b) & 0x1]; w++;
-						data[w] = colorG[(c >> b) & 0x1]; w++;
-						data[w] = colorB[(c >> b) & 0x1]; w++;
-					}
-				}
-				z++;
-			}
-			for (uint8_t s = 0; s < scale - 1; s++) {
-				memcpy(&data[w],&data[w - (LCD_RESX * scale * 3)],(LCD_RESX * scale * 3));
-				w += (LCD_RESX * scale * 3);
-			}
+		w += Master.pitch - (LCD_RESX * scale * 3);
+		for (uint8_t s = 0; s < scale - 1; s++) {
+			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
+			w += Master.pitch;
 		}
 	}
 }
 
-uint8_t darkMode = 0;
 void copyFrame(uint8_t* data) {
     if (data == NULL) {
         printf("ERROR | Buffer Pointer is Void \n"); fflush(stdout);
@@ -677,7 +618,7 @@ void initLCDcontroller() {
 	Master.vram = calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
 	if (Master.vram == NULL) { printf("\nMaster.vram is NULL"); fflush(stdout); return; }
     SDL_Init(SDL_INIT_VIDEO);
-	window = SDL_CreateWindow("Endless-Super-Sweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, LCD_RESX * scale, LCD_RESY * scale,0);
+	window = SDL_CreateWindow("Endless-Super-Sweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, LCD_RESX * scale, LCD_RESY * scale,SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -685,11 +626,50 @@ void initLCDcontroller() {
 	Calculate16BitColor();
 }
 
+// Returns True if the window was resized. Optional: Returns new window size.
+bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
+	bool reVal = false;
+	int32_t x = 0, y = 0;
+	static int32_t rX = 0, rY = 0;
+	SDL_GetWindowSize(window,&x,&y);
+	if ((rX != x || rY != y) && (rX != 0 && rY != 0)) {
+		if (x < RESX_MINIMUM) { x = RESX_MINIMUM; }
+		if (y < RESY_MINIMUM) { y = RESY_MINIMUM; }
+		if (x > RESX_MAXIMUM) { x = RESX_MAXIMUM; }
+		if (y > RESY_MAXIMUM) { y = RESY_MAXIMUM; }
+		if (x & 0x3) { x = x & ~0x3; } // Sets resX to a multiple of 4 so I don't have to deal with padded and unpadded image buffers
+		
+		scale = MIN(x / LCD_RESX, y / LCD_RESY);
+		x = LCD_RESX * scale;
+		y = LCD_RESY * scale;
+
+		SDL_SetWindowSize(window,x,y);
+		SDL_RenderSetLogicalSize(renderer, x, y);
+		Master.resX = x;
+		Master.resY = y;
+		Master.pitch = Master.resX * 3;
+		Master.vram = (uint8_t*)realloc((void*)(Master.vram),Master.resX * Master.resY * 3);
+		if (resX != NULL) { *resX = x; }
+		if (resY != NULL) { *resY = y; }
+		if (texture != NULL) {
+			SDL_DestroyTexture(texture);
+		}
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
+		memset(Master.vram,0,Master.pitch * Master.resY);
+		reVal = true;
+	}
+	rX = x;
+	rY = y;
+	return reVal;
+}
+
+
 void newFrame() {
     if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
         terminateLCDcontroller();
         exit(0);
     }
+	windowResizingCode(NULL,NULL);
 	copyFrame(Master.vram);
 	SDL_UpdateTexture(texture, NULL, Master.vram, Master.pitch);
 	{

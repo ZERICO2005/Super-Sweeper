@@ -82,8 +82,8 @@ void keyReset(uint8_t type) {
 }
 
 void keyPress() { //Makes the game run at a constant FPS
-    uint24_t frameDelta = 0; //stores the time between frames
-    uint24_t frameTime = 0; //stores timer_Get(1)
+    uint32_t frameDelta = 0; //stores the time between frames
+    uint32_t frameTime = 0; //stores timer_Get(1)
 
 	// static fp64 nStart = 0.0;
 	// static fp64 nFinish = 0.0;

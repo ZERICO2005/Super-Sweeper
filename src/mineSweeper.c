@@ -18,16 +18,6 @@
 
 //#include <col.h>
 
-#define borderIndexes 2
-//Graphic numbers
-#define gMine 25
-#define gFlag 26
-#define gQuestion 27
-
-#define currentTime (systemTime - gameStartTime - gamePauseTime)
-
-void gameControl(); //Temporary 2023 May 23rd
-
 uint8_t alphaBind() {
     if (swapAlphaSecondBind == 0) {
         if ((kb_Data[2] & kb_Alpha)) {
@@ -414,7 +404,7 @@ void glyph(int16_t space, uint8_t symbol) {
 
 void fillTile(int16_t space, int8_t mode) {
 	gColor = 15; //grey
-	if (state[space] == 0) {
+	if (state[space] == sHIDDEN) {
 		
 		if (mode == tSELECT) { gColor = 16; }
 		fillRect(space % marX * disX + 1 + posX, space / marX * disY + 1 + posY, disX - 3, disY - 3);
@@ -1012,6 +1002,41 @@ void autoSolve() {
     tile = tileAS;
 }
 
+#ifndef PLATFORM_TI84CE
+	bool setTileToMousePosition() {
+		if (useMouseInGame == false) {
+			return false;
+		}
+		static int32_t prevMouseX = -1;
+		static int32_t prevMouseY = -1;
+		int32_t mouseX;
+		int32_t mouseY;
+		getMouseState(&mouseX,&mouseY);
+		if (prevMouseX == mouseX && prevMouseY == mouseY) {
+			return false;
+		}
+		prevMouseX = mouseX;
+		prevMouseY = mouseY;
+		int24_t mTileX = (mouseX - posX + 1);
+		int24_t mTileY = (mouseY - posY + 1);
+		if (mTileX % disX == 0 || mTileY % disY == 0) {
+			return false;
+		}
+		mTileX /= disX;
+		mTileY /= disY;
+		if (
+			(mTileX < borderIndexes || mTileX >= marX - borderIndexes) ||
+			(mTileY < borderIndexes || mTileY >= marY - borderIndexes) 
+		) {
+			return false;
+		}
+		fillTile(tile, tCLEAR); //Clears Tile
+		tile = mTileX + (mTileY * marX);
+		fillTile(tile, tSELECT); //Draws Tile
+		return true;
+	}
+#endif
+
 uint8_t chordCheck = 0;
 void gameLoop() {
     //key = 99; //Prevents endless restart loop
@@ -1039,7 +1064,7 @@ void gameControl() {
             if (currentTime < 327680000) { // <10000 seconds or <2.78 Hours
                 displaySeg7(currentTime >> 15,10,&timeLCD);
             } else { //Blinks after 9999 seconds
-                if (systemTime & 16384) {
+                if (systemTime & 16384) { // Blinks at 2 Hertz
                     displaySeg7(104975,18,&timeLCD); //Time ---- 18^4 - 1
                 } else {
                     displaySeg7(9999,10,&timeLCD); //Time 9999
@@ -1048,13 +1073,25 @@ void gameControl() {
         } else if (currentTime >= 327680000) {
             displaySeg7(9999,10,&timeLCD); //Time 9999
         }
+
+		#ifndef PLATFORM_TI84CE
+			setTileToMousePosition();
+			uint32_t mouseState = getMouseState(NULL,NULL);
+			bool alphaClick = mouseState & 0x1;
+			bool secondClick = mouseState & 0x4;
+			bool chordClick = mouseState & 0x2;
+		#else
+			const bool alphaClick = false;
+			const bool secondClick = false;
+			const bool chordClick = false;
+		#endif
         
-        if ((kb_Data[3] & kb_GraphVar) && cleared != 0 && keyReady & CHORD) {
+        if (((kb_Data[3] & kb_GraphVar) || chordClick) && cleared != 0 && (keyReady & CHORD)) {
             keyReset(cHORD);
             autoChord();
         }
 
-        if (kb_Data[6] & kb_Power && cleared != 0 && keyReady & DEBUG && autoSolver) {
+        if ((kb_Data[6] & kb_Power) && (cleared != 0) && (keyReady & DEBUG) && autoSolver) {
             keyReset(dEBUG);
             expression(eCHORD);
             autoSolve();
@@ -1123,8 +1160,8 @@ void gameControl() {
 			
             fillTile(tile, tSELECT); //Draws Tile
         }
-			
-		if ((keyReady & ALPHA) && alphaBind()) {
+
+		if ((keyReady & ALPHA) && (alphaBind() || alphaClick)) {
 			keyReset(aLPHA);
 
             if (flag[tile] == fFLAG) { //Removes flag from tile and updates flag counters
@@ -1196,7 +1233,7 @@ void gameControl() {
             win = false;
         }
 		
-		if (((keyReady & SECOND) && secondBind()) && state[tile] != sCLEARED) { //2nd
+		if (((keyReady & SECOND) && (secondBind() || secondClick)) && state[tile] != sCLEARED) { //2nd
 			keyReset(sECOND);
 			if (flag[tile] == fFLAG) { //If there is a flag remove it
 				flag[tile] = fBLANK;
