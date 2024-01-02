@@ -111,8 +111,8 @@ const uint8_t hiddenText[43] = { //SuperSweeper V:X.XX.X ZERICO2005 YYYY/MM/DD
 	82,110,105,94,107,82,112,94,94,105,94,107,32,85,39, /* Text */
 	(PROGRAM_V_MAJOR),34,((PROGRAM_V_MINOR) / 10),((PROGRAM_V_MINOR) % 10),34,PROGRAM_V_PATCH,                                      /* Version */
 	32,89,68,81,72,66,78,2,0,0,5,32,                    /* Text */
-	2,0,2,3,36,                                         /* Year */
-	1,2,36,2,1,                                         /* Month Day */
+	2,0,2,4,36,                                         /* Year */
+	0,1,36,0,2,                                         /* Month Day */
 };
 const uint8_t hiddenTextLength = 43;
 
