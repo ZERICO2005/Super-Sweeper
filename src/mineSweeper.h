@@ -1,5 +1,5 @@
 /*
-**	Author: zerico2005 (2023)
+**	Author: zerico2005 (2023-2024)
 **	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
@@ -112,7 +112,6 @@ void cursorSetup();
 
 void drawGame();
 
-extern const uint8_t fontList[];
 void fontCheck(); //Plus 4
 
 void resetGame();

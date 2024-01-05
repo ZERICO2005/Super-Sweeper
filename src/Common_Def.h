@@ -1,5 +1,5 @@
 /*
-**	Author: zerico2005 (2023)
+**	Author: zerico2005 (2023-2024)
 **	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
@@ -14,7 +14,7 @@
 
 #define PROGRAM_V_MAJOR 0
 #define PROGRAM_V_MINOR 81
-#define PROGRAM_V_PATCH 0
+#define PROGRAM_V_PATCH 1
 
 //#define PLATFORM_TI84CE
 #define PLATFORM_X86

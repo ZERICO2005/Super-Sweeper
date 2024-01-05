@@ -1,6 +1,6 @@
 /*
-**	Author: zerico2005 (2023)
-**	Project: Endless-Super-Sweeper
+**	Author: zerico2005 (2023-2024)
+**	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
 **	this project. If not, see https://opensource.org/license/MIT
@@ -125,8 +125,8 @@ SDL_Texture* texture;
 		int32_t x;
 		int32_t y;
 		uint32_t state = SDL_GetMouseState(&x,&y);
-		x /= scale;
-		y /= scale;
+		x = (x * LCD_RESX) / Master.resX;
+		y = (y * LCD_RESY) / Master.resY;
 		if (posX != NULL) { *posX = x; }
 		if (posY != NULL) { *posY = y; }
 		return state;
@@ -368,15 +368,17 @@ void blit16bpp(uint8_t* data) {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			uint32_t c = (uint32_t)((uint16_t*)videoCopy)[z];
 			c *= 3;
-			for (uint8_t s = 0; s < scale; s++) {
+			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
+			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = PreCalc16[c]; w++;
 				data[w] = PreCalc16[c + 1]; w++;
 				data[w] = PreCalc16[c + 2]; w++;
 			}
 			z++;
 		}
-		w += Master.pitch - (LCD_RESX * scale * 3);
-		for (uint8_t s = 0; s < scale - 1; s++) {
+		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
+		//w += Master.pitch - (LCD_RESX * lenY * 3);
+		for (uint8_t s = 0; s < lenY - 1; s++) {
 			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
 			w += Master.pitch;
 		}
@@ -389,15 +391,17 @@ void blit8bpp(uint8_t* data) {
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			videoCopyArray;
-			for (uint8_t s = 0; s < scale; s++) {
+			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
+			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c]; w++;
 				data[w] = colorG[c]; w++;
 				data[w] = colorB[c]; w++;
 			}
 			z++;
 		}
-		w += Master.pitch - (LCD_RESX * scale * 3);
-		for (uint8_t s = 0; s < scale - 1; s++) {
+		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
+		//w += Master.pitch - (LCD_RESX * lenY * 3);
+		for (uint8_t s = 0; s < lenY - 1; s++) {
 			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
 			w += Master.pitch;
 		}
@@ -411,7 +415,8 @@ void blit4bpp(uint8_t* data) {
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 			videoCopyArray;
-			for (uint8_t s = 0; s < scale; s++) {
+			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
+			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c & 0xF]; w++;
 				data[w] = colorG[c & 0xF]; w++;
 				data[w] = colorB[c & 0xF]; w++;
@@ -421,8 +426,9 @@ void blit4bpp(uint8_t* data) {
 			}
 			z++;
 		}
-		w += Master.pitch - (LCD_RESX * scale * 3);
-		for (uint8_t s = 0; s < scale - 1; s++) {
+		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
+		//w += Master.pitch - (LCD_RESX * lenY * 3);
+		for (uint8_t s = 0; s < lenY - 1; s++) {
 			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
 			w += Master.pitch;
 		}
@@ -436,7 +442,8 @@ void blit2bpp(uint8_t* data) {
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 			videoCopyArray;
-			for (uint8_t s = 0; s < scale; s++) {
+			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
+			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c & 0x3]; w++;
 				data[w] = colorG[c & 0x3]; w++;
 				data[w] = colorB[c & 0x3]; w++;
@@ -452,8 +459,9 @@ void blit2bpp(uint8_t* data) {
 			}
 			z++;
 		}
-		w += Master.pitch - (LCD_RESX * scale * 3);
-		for (uint8_t s = 0; s < scale - 1; s++) {
+		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
+		//w += Master.pitch - (LCD_RESX * lenY * 3);
+		for (uint8_t s = 0; s < lenY - 1; s++) {
 			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
 			w += Master.pitch;
 		}
@@ -467,7 +475,8 @@ void blit1bpp(uint8_t* data) {
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 			videoCopyArray;
-			for (uint8_t s = 0; s < scale; s++) {
+			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
+			for (uint8_t s = 0; s < lenX; s++) {
 				for (uint8_t b = 0; b < 8; b++) {
 					data[w] = colorR[(c >> b) & 0x1]; w++;
 					data[w] = colorG[(c >> b) & 0x1]; w++;
@@ -476,8 +485,9 @@ void blit1bpp(uint8_t* data) {
 			}
 			z++;
 		}
-		w += Master.pitch - (LCD_RESX * scale * 3);
-		for (uint8_t s = 0; s < scale - 1; s++) {
+		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
+		//w += Master.pitch - (LCD_RESX * lenY * 3);
+		for (uint8_t s = 0; s < lenY - 1; s++) {
 			memcpy(&data[w],&data[w - Master.pitch],Master.pitch);
 			w += Master.pitch;
 		}
@@ -618,8 +628,10 @@ void initLCDcontroller() {
 	Master.vram = calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
 	if (Master.vram == NULL) { printf("\nMaster.vram is NULL"); fflush(stdout); return; }
     SDL_Init(SDL_INIT_VIDEO);
-	window = SDL_CreateWindow("Endless-Super-Sweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, LCD_RESX * scale, LCD_RESY * scale,SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	window = SDL_CreateWindow("Super-Sweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, LCD_RESX * scale, LCD_RESY * scale,SDL_WINDOW_RESIZABLE);
+    SDL_SetWindowMinimumSize(window, RESX_MINIMUM, RESY_MINIMUM);
+	SDL_SetWindowMaximumSize(window, RESX_MAXIMUM, RESY_MAXIMUM);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
     texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB24,SDL_TEXTUREACCESS_STREAMING, LCD_RESX * scale, LCD_RESY * scale);
@@ -633,15 +645,29 @@ bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
 	static int32_t rX = 0, rY = 0;
 	SDL_GetWindowSize(window,&x,&y);
 	if ((rX != x || rY != y) && (rX != 0 && rY != 0)) {
-		if (x < RESX_MINIMUM) { x = RESX_MINIMUM; }
-		if (y < RESY_MINIMUM) { y = RESY_MINIMUM; }
-		if (x > RESX_MAXIMUM) { x = RESX_MAXIMUM; }
-		if (y > RESY_MAXIMUM) { y = RESY_MAXIMUM; }
-		if (x & 0x3) { x = x & ~0x3; } // Sets resX to a multiple of 4 so I don't have to deal with padded and unpadded image buffers
-		
-		scale = MIN(x / LCD_RESX, y / LCD_RESY);
-		x = LCD_RESX * scale;
-		y = LCD_RESY * scale;
+		valueLimit(x,RESX_MINIMUM,RESX_MAXIMUM);
+		valueLimit(y,RESY_MINIMUM,RESY_MAXIMUM);
+
+		if (x & 0x3) { x = x & ~0x3; }
+
+		// const fp64 MaximumAspectRatio = 1.35;
+		// fp64 aspectRatio = ((fp64)x / (fp64)LCD_RESX) / ((fp64)y / (fp64)LCD_RESY);
+		// if (aspectRatio > MaximumAspectRatio) {
+		// 	x = (int32_t)(MaximumAspectRatio * ((fp64)y / (fp64)LCD_RESY) * (fp64)LCD_RESX);
+		// } else if (aspectRatio < 1.0 / MaximumAspectRatio) {
+		// 	y = (int32_t)(MaximumAspectRatio * ((fp64)x / (fp64)LCD_RESX) * (fp64)LCD_RESY);
+		// }
+
+		fp64 scaleVal = MIN((fp64)x / (fp64)LCD_RESX,(fp64)y / (fp64)LCD_RESY);
+		x = (int32_t)(scaleVal * (fp64)LCD_RESX);
+		y = (int32_t)(scaleVal * (fp64)LCD_RESY);
+
+		// Sets resX to a multiple of 4 so I don't have to deal with padded and unpadded image buffers
+		if (x & 0x3) { x = x & ~0x3; }
+
+		// scale = MIN(x / LCD_RESX, y / LCD_RESY);
+		// x = LCD_RESX * scale;
+		// y = LCD_RESY * scale;
 
 		SDL_SetWindowSize(window,x,y);
 		SDL_RenderSetLogicalSize(renderer, x, y);

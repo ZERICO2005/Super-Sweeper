@@ -1,5 +1,5 @@
 /*
-**	Author: zerico2005 (2023)
+**	Author: zerico2005 (2023-2024)
 **	Project: Super-Sweeper
 **	License: MIT License
 **	A copy of the MIT License should be included with
@@ -17,6 +17,25 @@
 #include "dataManager.h"
 
 //#include <col.h>
+
+/* Data */
+	struct FontSizeData {
+		uint8_t fontType;
+		uint8_t disX;
+		uint8_t disY;
+		uint8_t padX;
+		uint8_t padY;
+		uint8_t maxX;
+		uint8_t maxY;
+	}; typedef struct FontSizeData FontSizeData;
+
+	enum FontSizeList {FontSize_3x5,FontSize_5x5,FontSize_6x8};
+
+	const FontSizeData fontSizeData[] = {
+		{FontSize_6x8,13,13,3,2, 24,16},{FontSize_6x8,11,13,2,2, 28,16},{FontSize_6x8,9,11,1,1, 35,19},
+		{FontSize_5x5,10,10,2,2, 31,21},{FontSize_5x5,8,8,1,1, 39,27},
+		{FontSize_3x5,8,10,2,2, 39,21},{FontSize_3x5,8,8,2,1, 39,27},{FontSize_3x5,6,8,1,1, 52,27}
+	};
 
 uint8_t alphaBind() {
     if (swapAlphaSecondBind == 0) {
@@ -153,75 +172,78 @@ void quake() {
     }
 }
 
-void expression(unsigned char e) { //Updates the smiley face
+void expression(uint8_t e) { // Updates the smiley face
+	static uint8_t currentExpression = 0;
+	static uint32_t currentGame = 0;
+	if (currentExpression == e) { // If already set to an expression, nothing needs to be updated
+		if (currentGame == gameStartTime) { // Checks if its a new game
+			return;
+		}
+	}
+	currentGame = gameStartTime;
+	currentExpression = e;
 	if (e < 4) { //0-3
 		gColor = 2;
 		fillRect(156, 12, 7, 3); //y2 = 3 because of chordCheck
 		gColor = 0;
-		if (e == eHAPPY) { //Happy
-			horiz(157, 13, 5);
-            plot(156, 12);
-            plot(162, 12);
-			return;
-		}
-		if (e == eSAD) { //Sad
-			horiz(157, 12, 5);
-			plot(156, 13);
-			plot(162, 13);
-			return;
-		}
-		if (e == eNULL) { //Null
-			horiz(156, 13, 7);
-			return;
-		}
-		if (e == eCHORD) { //Chord
-			gColor = 2;
-			fillRect(156,12,7,2);
-			gColor = 0;
-			fillRect(158,12,3,3);
-			return;
-		}
+		switch (e) {
+			case eHAPPY:
+				horiz(157, 13, 5);
+				plot(156, 12);
+				plot(162, 12);
+				return;
+			case eSAD:
+				horiz(157, 12, 5);
+				plot(156, 13);
+				plot(162, 13);
+				return;
+			case eNULL:
+				horiz(156, 13, 7);
+				return;
+			case eCHORD:
+				gColor = 2;
+				fillRect(156,12,7,2);
+				gColor = 0;
+				fillRect(158,12,3,3);
+				return;
+		};
 	} else if (e < 8) { //4-7
-		// gColor = 10; // This is what was causing the odd dark yellow dot
-		// plot(143,4); //Clears potential sunglasses
 		gColor = 2;
 		fillRect(156, 5, 7, 4);
 		gColor = 0;
-		if (e == eNORMAL) { //Normal
-			vert(157, 7, 2);
-			vert(161, 7, 2);
-			return;
-		}
-		if (e == eSHADES) { //Sunglasses
-			fillRect(156, 7, 7, 2);
-			gColor = 2;
-			plot(159, 8);
-			gColor = 0;
-			plot(162, 6);
-			plot(163, 5);
-			plot(156, 6);
-			plot(157, 5);
-			return;
-		}
-		if (e == eXX) { //XX
-			plot(156,6);
-			plot(156,8);
-			plot(157,7);
-			plot(158,6);
-			plot(158,8);
-			
-			plot(160,6);
-			plot(160,8);
-			plot(161,7);
-			plot(162,6);
-			plot(162,8);
-			return;
-		}
-		if (e == eSLEEP) { //Sleep
-			horiz(156, 8, 2);
-			horiz(161, 8, 2);
-			return;
-		}
+		switch (e) {
+			case eNORMAL: //Normal
+				vert(157, 7, 2);
+				vert(161, 7, 2);
+				return;
+			case eSHADES: //Sunglasses
+				fillRect(156, 7, 7, 2);
+				gColor = 2;
+				plot(159, 8);
+				gColor = 0;
+				plot(162, 6);
+				plot(163, 5);
+				plot(156, 6);
+				plot(157, 5);
+				return;
+			case eXX: //XX
+				plot(156,6);
+				plot(156,8);
+				plot(157,7);
+				plot(158,6);
+				plot(158,8);
+				
+				plot(160,6);
+				plot(160,8);
+				plot(161,7);
+				plot(162,6);
+				plot(162,8);
+				return;
+			case eSLEEP: //Sleep
+				horiz(156, 8, 2);
+				horiz(161, 8, 2);
+				return;
+		};
 	}
 }
 
@@ -243,6 +265,9 @@ void flash() { //uint8_t x
         while (deltaTime(timer_Get(1),flashTime) < 1472);
     }
 }
+
+/*
+// Legacy Flag Counter Code
 
 void flagDraw(uint8_t symbol, uint24_t xP, uint24_t yP) {
     gColor = accessMode ? 0 : color[symbol];
@@ -267,8 +292,6 @@ void flagDraw(uint8_t symbol, uint24_t xP, uint24_t yP) {
     }
 }
 
-/* 
-// Legacy Flag Counter Code
 void flagCount() {
     gColor = 15;
     for (int24_t z = 15; z <= 35; z += 10) { //Flag Counter
@@ -321,85 +344,87 @@ void flagCount() { //Add a color number mode for nostalga
 void glyph(int16_t space, uint8_t symbol) {
     gColor = color[symbol];
     if (symbol == gFlag) {
-        if (~fontSize & 1 || fontSize == 0) { //0,1,3,5
+        if (fontSizeData[fontSize].padY == 1 || fontSizeData[fontSize].padX == 1) {
             gColor = 22; //Changes flag pole color to be more readable
         }
     }
-    if (font == 2) { //6x8 Font
-        uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
-        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-        uint8_t b = 1;
-        for (uint8_t y = 0; y < 8; y++) {
-            for (uint8_t x = 0; x < 6; x++) {
-                *z = *bitImage & b ? gColor : *z;
-                bitImage++;
-                z++;
-            }
-            bitImage -= 6;
-            z += (LCD_RESX - 6);
-            b <<= 1;
-        }
-        
-        if (symbol == gFlag) {
-            gColor = flagColor;
-            fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
-        } else if (symbol == gMine) {
-            //gColor = 7;
-            z -= (LCD_RESX * 6) - 2;
-            *z = 7; // 2,2 // White
-            z += (LCD_RESX - 1);
-            *z = 7; // 1,3 // White
-        }
-        return;
-    } else if (font == 1) { //5x5 Font
-        symbol <<= 1;
-        uint16_t bitImage0 = char5x5[symbol];
-        uint16_t bitImage1 = char5x5[symbol + 1];
-        // uint24_t z1 = z0 + 960;
-        uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-        for (uint8_t y = 0; y < 5; y++) {
-            for (uint8_t x = 0; x < 5; x++) {
-                if (bitImage0 & 1) {
-                    *z = gColor;
-                }
-                z += (LCD_RESX * 3);
-                if (bitImage1 & 1) {
-                    *z = gColor;
-                }
-                bitImage0 >>= 1;
-                bitImage1 >>= 1;
-                z -= (LCD_RESX * 3) - 1;
-            }
-            z += LCD_RESX - 5;
-        }
-        if (symbol == 2 * gFlag) {
-            gColor = flagColor;
-            fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
-        } else if (symbol == 2 * gMine) {
-            //gColor = 7;
-            z -= (LCD_RESX * 4) - 1;
-            *z = 7; // 1,1 // White
-        }
-        return;
-    }
-    //3x5 Font
-    uint16_t bitImage = char3x5[symbol];
-    uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-    for (uint8_t y = 0; y < 5; y++) {
-        for (uint8_t x = 0; x < 3; x++) {
-            if (bitImage & 1) {
-                *z = gColor;
-            }
-            bitImage >>= 1;
-            z++;
-        }
-        z += (LCD_RESX - 3);
-    }
-    if (symbol == gFlag) {
-        gColor = flagColor;
-        fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
-    }
-    return;
+	switch(font) {
+		case FontSize_6x8: {
+			uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
+			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+			uint8_t b = 1;
+			for (uint8_t y = 0; y < 8; y++) {
+				for (uint8_t x = 0; x < 6; x++) {
+					*z = *bitImage & b ? gColor : *z;
+					bitImage++;
+					z++;
+				}
+				bitImage -= 6;
+				z += (LCD_RESX - 6);
+				b <<= 1;
+			}
+			
+			if (symbol == gFlag) {
+				gColor = flagColor;
+				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
+			} else if (symbol == gMine) {
+				//gColor = 7;
+				z -= (LCD_RESX * 6) - 2;
+				*z = 7; // 2,2 // White
+				z += (LCD_RESX - 1);
+				*z = 7; // 1,3 // White
+			}
+		} break;
+		case FontSize_5x5: {
+			symbol <<= 1;
+			uint16_t bitImage0 = char5x5[symbol];
+			uint16_t bitImage1 = char5x5[symbol + 1];
+			// uint24_t z1 = z0 + 960;
+			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+			for (uint8_t y = 0; y < 5; y++) {
+				for (uint8_t x = 0; x < 5; x++) {
+					if (bitImage0 & 1) {
+						*z = gColor;
+					}
+					z += (LCD_RESX * 3);
+					if (bitImage1 & 1) {
+						*z = gColor;
+					}
+					bitImage0 >>= 1;
+					bitImage1 >>= 1;
+					z -= (LCD_RESX * 3) - 1;
+				}
+				z += LCD_RESX - 5;
+			}
+			if (symbol == 2 * gFlag) {
+				gColor = flagColor;
+				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+			} else if (symbol == 2 * gMine) {
+				//gColor = 7;
+				z -= (LCD_RESX * 4) - 1;
+				*z = 7; // 1,1 // White
+			}
+		} break;
+		case FontSize_3x5: {
+			uint16_t bitImage = char3x5[symbol];
+			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+			for (uint8_t y = 0; y < 5; y++) {
+				for (uint8_t x = 0; x < 3; x++) {
+					if (bitImage & 1) {
+						*z = gColor;
+					}
+					bitImage >>= 1;
+					z++;
+				}
+				z += (LCD_RESX - 3);
+			}
+			if (symbol == gFlag) {
+				gColor = flagColor;
+				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+			}
+			break;
+		}
+	};
 }
 
 void fillTile(int16_t space, int8_t mode) {
@@ -714,9 +739,13 @@ void drawGame() {
     }
 
     gColor = (15); //Fill Sqaures
-    for (int24_t y = 2; y < marY - 2; y++) {
-        for (int24_t x = 2; x < marX - 2; x++) {
-            fillRect(x * disX + posX + 1, y * disY + posY + 1, disX - 2, disY - 2);
+	// printf("\npos(%d,%d) dis(%dx%d)",posX,posY,disX,disY);
+	// fflush(stdout);
+    for (int24_t y = borderIndexes; y < marY - borderIndexes; y++) {
+        for (int24_t x = borderIndexes; x < marX - borderIndexes; x++) {
+			// printf("\n[%d,%d]: (%d,%d)(%dx%d)",x,y,x * disX + posX + 1,y * disY + posY + 1, disX - 3, disY - 3);
+			// fflush(stdout);
+            fillRect(x * disX + posX + 1, y * disY + posY + 1, disX - 3, disY - 3);
         }
     }
     /*for (uint24_t x = 5; x < 55; x += 10) { // Flag Squares
@@ -829,20 +858,18 @@ void drawGame() {
 
 }
 
-const uint8_t fontList[] = {24,16,6,  28,16,5,  35,19,4,  31,21,2,  39,27,2,  39,21,1,  39,27,0};
-void fontCheck() { //Plus 4
-    uint8_t i = 7;
-    for (uint8_t j = 0; j < 24; j += 3) {
-        if (fontSize == i && (sizeX > fontList[j] || sizeY > fontList[j + 1])) {
-            fontSize = fontList[j + 2];
-        }
-        i--;
-    }
-    font = fontArray[fontSize];
-    disX = fontArray[fontSize + 8];
-    disY = fontArray[fontSize + 16];
-    padX = fontArray[fontSize + 24];
-    padY = fontArray[fontSize + 32];
+void fontCheck() {
+	for (uint8_t f = fontSize; f < ARRAY_LENGTH(fontSizeData); f++) {
+		if (sizeX <= fontSizeData[fontSize].maxX && sizeY <= fontSizeData[fontSize].maxY) {
+			break;
+		}
+		fontSize++;
+	}
+	font = fontSizeData[fontSize].fontType;
+	disX = fontSizeData[fontSize].disX;
+	disY = fontSizeData[fontSize].disY;
+	padX = fontSizeData[fontSize].padX;
+	padY = fontSizeData[fontSize].padY;
 }
 
 void resetGame() {
@@ -850,7 +877,7 @@ void resetGame() {
     //1: Board
     marX = sizeX + 4;
     marY = sizeY + 4;
-	fontSize = 7; // Resets font size to the largest available before doing the font check stuff
+	fontSize = 0; // Resets font size to the largest available before doing the font check stuff
     fontCheck(); //Fits font to screen size
 
     posX = 160 - (disX >> 1) * marX; //Allign game board
@@ -1003,24 +1030,19 @@ void autoSolve() {
 }
 
 #ifndef PLATFORM_TI84CE
-	bool setTileToMousePosition() {
+	bool setTileToMousePosition() { // Returns false if mouse is out of bounds or disabled
 		if (useMouseInGame == false) {
-			return false;
+			return false; // Featured toggled off
 		}
 		static int32_t prevMouseX = -1;
 		static int32_t prevMouseY = -1;
 		int32_t mouseX;
 		int32_t mouseY;
 		getMouseState(&mouseX,&mouseY);
-		if (prevMouseX == mouseX && prevMouseY == mouseY) {
-			return false;
-		}
-		prevMouseX = mouseX;
-		prevMouseY = mouseY;
 		int24_t mTileX = (mouseX - posX + 1);
 		int24_t mTileY = (mouseY - posY + 1);
 		if (mTileX % disX == 0 || mTileY % disY == 0) {
-			return false;
+			return false; // On the grid but not a tile
 		}
 		mTileX /= disX;
 		mTileY /= disY;
@@ -1028,8 +1050,13 @@ void autoSolve() {
 			(mTileX < borderIndexes || mTileX >= marX - borderIndexes) ||
 			(mTileY < borderIndexes || mTileY >= marY - borderIndexes) 
 		) {
-			return false;
+			return false; // Out of bounds
 		}
+		if (prevMouseX == mouseX && prevMouseY == mouseY) {
+			return true; // No change in mouse cordinates
+		}
+		prevMouseX = mouseX;
+		prevMouseY = mouseY;
 		fillTile(tile, tCLEAR); //Clears Tile
 		tile = mTileX + (mTileY * marX);
 		fillTile(tile, tSELECT); //Draws Tile
@@ -1075,21 +1102,34 @@ void gameControl() {
         }
 
 		#ifndef PLATFORM_TI84CE
-			setTileToMousePosition();
-			uint32_t mouseState = getMouseState(NULL,NULL);
-			bool alphaClick = mouseState & 0x1;
-			bool secondClick = mouseState & 0x4;
-			bool chordClick = mouseState & 0x2;
+			bool alphaClick = false;
+			bool secondClick = false;
+			bool chordClick = false;
+			if (setTileToMousePosition()) {
+				uint32_t mouseState = getMouseState(NULL,NULL);
+				alphaClick = mouseState & 0x1;
+				secondClick = mouseState & 0x4;
+				chordClick = mouseState & 0x2;
+			}
 		#else
 			const bool alphaClick = false;
 			const bool secondClick = false;
 			const bool chordClick = false;
 		#endif
-        
-        if (((kb_Data[3] & kb_GraphVar) || chordClick) && cleared != 0 && (keyReady & CHORD)) {
-            keyReset(cHORD);
-            autoChord();
-        }
+
+		if ((kb_Data[3] & kb_GraphVar) || chordClick) {
+			expression(eCHORD);
+			if (cleared != 0 && (keyReady & CHORD)) {
+				keyReset(cHORD);
+				autoChord();
+       		}
+		} else {
+			if (win) {
+				expression(eHAPPY);
+			} else {
+				expression(eSAD);
+			}
+		}
 
         if ((kb_Data[6] & kb_Power) && (cleared != 0) && (keyReady & DEBUG) && autoSolver) {
             keyReset(dEBUG);
