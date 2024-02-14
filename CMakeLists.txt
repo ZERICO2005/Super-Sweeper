@@ -7,6 +7,7 @@ set(LIB_PATH "${TOOLCHAIN_PATH}/lib")
 
 set(SRC_DIR "./src")
 set(SRC_LCD_DIR "./src-lcd")
+set(IMGUI_DIR "./imgui")
 
 set(PROJECT_NAME "Super-Sweeper-Windows")
 project(${PROJECT_NAME})
@@ -25,11 +26,12 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(SDL2 REQUIRED)
 
 file(GLOB SRC_FILES "${SRC_DIR}/*.c" "${SRC_LCD_DIR}/*.c")
+file(GLOB IMGUI_FILES "${IMGUI_DIR}/*.c" "${IMGUI_DIR}/*.cpp")
 # Create an executable
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${IMGUI_FILES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_LCD_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_LCD_DIR} ${IMGUI_DIR})
 # Compiler Flags Debug(-g -O0) Release(-O3)
 set(OPT_FLAG -g -O3)
-target_compile_options(${PROJECT_NAME} PUBLIC ${OPT_FLAG} -Wall -Wextra -Werror)
+target_compile_options(${PROJECT_NAME} PUBLIC ${OPT_FLAG} -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable)
 target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2main)

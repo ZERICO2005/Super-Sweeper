@@ -34,14 +34,25 @@ void shiftScreen() { //Moves the frame base around
     uint8_t change = 0;
     if (DEBUG & keyReady) {
         keyReset(dEBUG);
-        if (kb_Data[4] & kb_8) { //Up
-            lcd_UpBase -= 2560;
-            change = 1;
-        } 
-        if (kb_Data[4] & kb_2) { //Down
-            lcd_UpBase += 2560;
-            change = 1;
-        }
+		#ifndef SWAP_X_AND_Y_CORD
+			if (kb_Data[4] & kb_8) { //Up
+				lcd_UpBase -= (8 * LCD_RESX);
+				change = 1;
+			} 
+			if (kb_Data[4] & kb_2) { //Down
+				lcd_UpBase += (8 * LCD_RESX);
+				change = 1;
+			}
+		#else
+			if (kb_Data[4] & kb_8) { //Up
+				lcd_UpBase -= (8 * LCD_RESY);
+				change = 1;
+			} 
+			if (kb_Data[4] & kb_2) { //Down
+				lcd_UpBase += (8 * LCD_RESY);
+				change = 1;
+			}
+		#endif
         if (kb_Data[5] & kb_6) { //Right
             lcd_UpBase += 8;
             change = 1;

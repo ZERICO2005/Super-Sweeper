@@ -149,7 +149,11 @@ void drawPattern() {
     for (int24_t i = 0; i < offLen; i += 2) {
         u = order[offPos + i] * 13; //Probably more memory effeicent than an algorithm
         v = order[offPos + i + 1] * 13;
-        uint8_t *fillR = lcd_Ram8 + ((44 * 320) + 266 + (320 * v) + u);
+		#ifndef SWAP_X_AND_Y_CORD
+			uint8_t *fillR = lcd_Ram8 + ((44 * LCD_RESX) + 266 + (LCD_RESX * v) + u);
+		#else
+			uint8_t *fillR = lcd_Ram8 + (44 + (266 * LCD_RESY) + v + (u * LCD_RESY));
+		#endif
 		if (*fillR == 0) { //Draws a 3 if 2 is already there
 		    fillRect(266 + u, 44 + v , 10, 10);
             gColor = 0;

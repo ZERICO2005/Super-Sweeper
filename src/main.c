@@ -10,9 +10,15 @@
 #include "global.h"
 #include "prime2D.h"
 #include "menu.h"
+#include "fmVideo.h"
 
 void init_routine() {
 	initLCDcontroller();
+	#ifndef SWAP_X_AND_Y_CORD
+		SPI_Row_Major();
+	#else
+		SPI_Column_Major();
+	#endif
 	// ((void(*)(void))0x384)();
 	// *(volatile uint8_t*)0xF80018 = 0x08;
 	// *(volatile uint8_t*)0xF80018 = 0x44;
@@ -22,6 +28,7 @@ void init_routine() {
 	// Timers
 	timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
 
+	//playIntroVideo();
 	// Video
 	memcpy(lcd_Palette,initialPalette,256 * sizeof(uint16_t));
 	lcd_UpBase = 0xD40000;

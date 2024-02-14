@@ -274,6 +274,10 @@ uint8_t simulated_ram[16777216];
 	int24_t ti_Rewind(uint8_t handle) {
 		return ti_Seek(0, SEEK_SET, handle);
 	}
+	
+	void* ti_GetDataPtr(uint8_t handle) {
+		return NULL;
+	}
 
 	#undef RamFolderPath
 	#undef NameSize
@@ -283,4 +287,12 @@ uint8_t simulated_ram[16777216];
 void resetLCDcontroller() {
 	lcd_UpBase = 0xD40000;
 	lcd_VideoMode = lcd_BGR16bit;
+}
+
+void SPI_Row_Major() {
+	internal_SPI_Row_Major();
+}
+
+void SPI_Column_Major() {
+	internal_SPI_Column_Major();
 }

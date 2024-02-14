@@ -348,83 +348,166 @@ void glyph(int16_t space, uint8_t symbol) {
             gColor = 22; //Changes flag pole color to be more readable
         }
     }
-	switch(font) {
-		case FontSize_6x8: {
-			uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
-			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-			uint8_t b = 1;
-			for (uint8_t y = 0; y < 8; y++) {
+	#ifndef SWAP_X_AND_Y_CORD
+		switch(font) {
+			case FontSize_6x8: {
+				uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+				uint8_t b = 0x1;
+				for (uint8_t y = 0; y < 8; y++) {
+					for (uint8_t x = 0; x < 6; x++) {
+						*z = *bitImage & b ? gColor : *z;
+						bitImage++;
+						z++;
+					}
+					bitImage -= 6;
+					z += (LCD_RESX - 6);
+					b <<= 1;
+				}
+				
+				if (symbol == gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
+				} else if (symbol == gMine) {
+					//gColor = 7;
+					z -= (LCD_RESX * 6) - 2;
+					*z = 7; // 2,2 // White
+					z += (LCD_RESX - 1);
+					*z = 7; // 1,3 // White
+				}
+			} break;
+			case FontSize_5x5: {
+				symbol <<= 1;
+				uint16_t bitImage0 = char5x5[symbol];
+				uint16_t bitImage1 = char5x5[symbol + 1];
+				// uint24_t z1 = z0 + 960;
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+				for (uint8_t y = 0; y < 5; y++) {
+					for (uint8_t x = 0; x < 5; x++) {
+						if (bitImage0 & 1) {
+							*z = gColor;
+						}
+						z += (LCD_RESX * 3);
+						if (bitImage1 & 1) {
+							*z = gColor;
+						}
+						bitImage0 >>= 1;
+						bitImage1 >>= 1;
+						z -= (LCD_RESX * 3) - 1;
+					}
+					z += LCD_RESX - 5;
+				}
+				if (symbol == 2 * gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+				} else if (symbol == 2 * gMine) {
+					//gColor = 7;
+					z -= (LCD_RESX * 4) - 1;
+					*z = 7; // 1,1 // White
+				}
+			} break;
+			case FontSize_3x5: {
+				uint16_t bitImage = char3x5[symbol];
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
+				for (uint8_t y = 0; y < 5; y++) {
+					for (uint8_t x = 0; x < 3; x++) {
+						if (bitImage & 1) {
+							*z = gColor;
+						}
+						bitImage >>= 1;
+						z++;
+					}
+					z += (LCD_RESX - 3);
+				}
+				if (symbol == gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+				}
+				break;
+			}
+		};
+	#else
+		switch(font) {
+			case FontSize_6x8: {
+				uint8_t* bitImage = (uint8_t*)char6x8 + (symbol * 6);
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) + (space % marX * disX + posX + padX) * LCD_RESY);
+				uint8_t b = 0x1;
 				for (uint8_t x = 0; x < 6; x++) {
-					*z = *bitImage & b ? gColor : *z;
+					for (uint8_t y = 0; y < 8; y++) {
+						*z = *bitImage & b ? gColor : *z;
+						z++;
+						b <<= 1;
+					}
 					bitImage++;
-					z++;
+					b = 0x1;
+					z += (LCD_RESY - 8);
 				}
-				bitImage -= 6;
-				z += (LCD_RESX - 6);
-				b <<= 1;
-			}
-			
-			if (symbol == gFlag) {
-				gColor = flagColor;
-				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
-			} else if (symbol == gMine) {
-				//gColor = 7;
-				z -= (LCD_RESX * 6) - 2;
-				*z = 7; // 2,2 // White
-				z += (LCD_RESX - 1);
-				*z = 7; // 1,3 // White
-			}
-		} break;
-		case FontSize_5x5: {
-			symbol <<= 1;
-			uint16_t bitImage0 = char5x5[symbol];
-			uint16_t bitImage1 = char5x5[symbol + 1];
-			// uint24_t z1 = z0 + 960;
-			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-			for (uint8_t y = 0; y < 5; y++) {
+				
+				if (symbol == gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY + 1, 3, 3);
+				} else if (symbol == gMine) {
+					//gColor = 7;
+					z -= (LCD_RESY * 4) - 2;
+					*z = 7; // 2,2 // White
+					z -= (LCD_RESY - 1);
+					*z = 7; // 1,3 // White
+				}
+			} break;
+			case FontSize_5x5: {
+				symbol <<= 1;
+				uint16_t bitImage0 = char5x5[symbol];
+				uint16_t bitImage1 = char5x5[symbol + 1];
+				// uint24_t z1 = z0 + 960;
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) + (space % marX * disX + posX + padX) * LCD_RESY);
 				for (uint8_t x = 0; x < 5; x++) {
-					if (bitImage0 & 1) {
-						*z = gColor;
+					for (uint8_t y = 0; y < 5; y++) {
+						if (bitImage0 & 0x1) {
+							*z = gColor;
+						}
+						z += 3;
+						if (bitImage1 & 0x1) {
+							*z = gColor;
+						}
+						bitImage0 >>= 1;
+						bitImage1 >>= 1;
+						z -= 3;
+						z += LCD_RESY;
 					}
-					z += (LCD_RESX * 3);
-					if (bitImage1 & 1) {
-						*z = gColor;
-					}
-					bitImage0 >>= 1;
-					bitImage1 >>= 1;
-					z -= (LCD_RESX * 3) - 1;
+					z += 1;
+					z -= (LCD_RESY * 5);
 				}
-				z += LCD_RESX - 5;
-			}
-			if (symbol == 2 * gFlag) {
-				gColor = flagColor;
-				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
-			} else if (symbol == 2 * gMine) {
-				//gColor = 7;
-				z -= (LCD_RESX * 4) - 1;
-				*z = 7; // 1,1 // White
-			}
-		} break;
-		case FontSize_3x5: {
-			uint16_t bitImage = char3x5[symbol];
-			uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) * LCD_RESX + (space % marX * disX + posX + padX));
-			for (uint8_t y = 0; y < 5; y++) {
-				for (uint8_t x = 0; x < 3; x++) {
-					if (bitImage & 1) {
-						*z = gColor;
+				if (symbol == 2 * gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+				} else if (symbol == 2 * gMine) {
+					//gColor = 7;
+					z += (LCD_RESY * 1) - 4;
+					*z = 7; // 1,1 // White
+				}
+			} break;
+			case FontSize_3x5: {
+				uint16_t bitImage = char3x5[symbol];
+				uint8_t* z = lcd_Ram8 + ((space / marX * disY + posY + padY) + (space % marX * disX + posX + padX) * LCD_RESY);
+				for (uint8_t y = 0; y < 5; y++) {
+					for (uint8_t x = 0; x < 3; x++) {
+						if (bitImage & 1) {
+							*z = gColor;
+						}
+						bitImage >>= 1;
+						z += LCD_RESY;
 					}
-					bitImage >>= 1;
 					z++;
+					z -= (LCD_RESY * 3);
 				}
-				z += (LCD_RESX - 3);
+				if (symbol == gFlag) {
+					gColor = flagColor;
+					fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
+				}
+				break;
 			}
-			if (symbol == gFlag) {
-				gColor = flagColor;
-				fillRect(space % marX * disX + posX + padX, space / marX * disY + posY + padY, 2, 2);
-			}
-			break;
-		}
-	};
+		};
+	#endif
 }
 
 void fillTile(int16_t space, int8_t mode) {
@@ -722,20 +805,27 @@ void drawGame() {
                 initialPalette[i] = 330;
             }
         }
-        for (uint24_t rY = 4; rY < LCD_RESY; rY += 32) {
+		uint24_t rY = 4;
+        for (; rY < LCD_RESY - 32; rY += 32) {
             for (uint24_t rX = 4; rX < LCD_RESX; rX += 32) {
                 gColor = 18;
                 text6x8(rX, rY, gMine);
                 gColor = 19;
                 text6x8(rX + 16, rY, gFlag);
                 gColor = 20;
-                text6x8(rX, rY + 16, 30);
+                text6x8(rX, rY + 16, gKnight);
                 gColor = 21;
-                text6x8(rX + 16, rY + 16, 31); //116 inverted flag
+                text6x8(rX + 16, rY + 16, gInvertedMine);
                 vert(rX + 15, rY + 16, 8);
                 vert(rX + 22, rY + 16, 8);
             }
         }
+		for (uint24_t rX = 4; rX < LCD_RESX; rX += 32) {
+			gColor = 18;
+			text6x8(rX, rY, gMine);
+			gColor = 19;
+			text6x8(rX + 16, rY, gFlag);
+		}
     }
 
     gColor = (15); //Fill Sqaures
@@ -855,7 +945,16 @@ void drawGame() {
 
     buildSeg7(104975,18,&timeLCD,4,224,0,0x00,0x1B,0x83,0x82); //Time 18^4 - 1
     buildSeg7(1889567,18,&scoreLCD,5,272,0,0x00,0x1B,0x85,0x84); //Score 18^5 - 1
-
+	// for (uint24_t i = 0; i < 17; i++) { // Column Major Address/Order Test
+	// 	gColor = 1;
+	// 	plotFast(1 << i);
+	// 	gColor = 0;
+	// 	plotFast((1 << i) + 1);
+	// 	gColor = 7;
+	// 	plotFast((1 << i) + 2);
+	// 	gColor = 5;
+	// 	plotFast((1 << i) + 3);
+	// }
 }
 
 void fontCheck() {

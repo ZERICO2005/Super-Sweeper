@@ -7,11 +7,9 @@
 */
 
 //#include "global.h"
-#ifndef X86_RENDER_H
-#define X86_RENDER_H
 
 #include "x86_Common_Def.h"
-
+#include "x86_Render.h"
 #include "x86_ti84ce.h"
 
 #define SDL_MAIN_HANDLED
@@ -23,10 +21,15 @@ uint8_t scale = 2;
 uint8_t darkMode = 0;
 bool useMouseInGame = true;
 
-#define RESX_MINIMUM (LCD_RESX)
-#define RESY_MINIMUM (LCD_RESY)
-#define RESX_MAXIMUM (LCD_RESX * 32)
-#define RESY_MAXIMUM (LCD_RESY * 32)
+bool columnMajorMode = false;
+
+int32_t RESX_MINIMUM = LCD_RESX;
+int32_t RESY_MINIMUM = LCD_RESY;
+int32_t RESX_MAXIMUM = LCD_RESX * 32;
+int32_t RESY_MAXIMUM = LCD_RESY * 32;
+
+int32_t LCD_RESU = LCD_RESX; 
+int32_t LCD_RESV = LCD_RESY;
 
 uint8_t PreCalc_RGB1555[65536 * 3];
 uint8_t PreCalc_BGR1555[65536 * 3];
@@ -131,6 +134,31 @@ SDL_Texture* texture;
 		if (posY != NULL) { *posY = y; }
 		return state;
 	}
+
+/* Row and Column Major */
+
+void resetResolutionValues(int32_t resU, int32_t resV) {
+	LCD_RESU = resU;
+	LCD_RESV = resV;
+	RESX_MINIMUM = resU;
+	RESY_MINIMUM = resV;
+	RESX_MAXIMUM = resU * 32;
+	RESY_MAXIMUM = resV * 32;
+	SDL_SetWindowMinimumSize(window, RESX_MINIMUM, RESY_MINIMUM);
+	SDL_SetWindowMaximumSize(window, RESX_MAXIMUM, RESY_MAXIMUM);
+}
+
+void internal_SPI_Row_Major() {
+	columnMajorMode = false;
+	// resetResolutionValues(LCD_RESX,LCD_RESY);
+	// resizeWindow(Master.resX,Master.resY,NULL,NULL);
+}
+
+void internal_SPI_Column_Major() {
+	columnMajorMode = true;
+	// resetResolutionValues(LCD_RESY,LCD_RESX);
+	// resizeWindow(Master.resY,Master.resX,NULL,NULL);
+}
 
 /* Pointers */
 
@@ -303,6 +331,8 @@ struct keyBind keyBind2[] = { //WASD
     /* Keypad Numbers */
     {SDL_SCANCODE_KP_0,KB_0},{SDL_SCANCODE_KP_1,KB_1},{SDL_SCANCODE_KP_2,KB_2},{SDL_SCANCODE_KP_3,KB_3},{SDL_SCANCODE_KP_4,KB_4},
     {SDL_SCANCODE_KP_5,KB_5},{SDL_SCANCODE_KP_6,KB_6},{SDL_SCANCODE_KP_7,KB_7},{SDL_SCANCODE_KP_8,KB_8},{SDL_SCANCODE_KP_9,KB_9},
+	{SDL_SCANCODE_0,KB_0},{SDL_SCANCODE_1,KB_1},{SDL_SCANCODE_2,KB_2},{SDL_SCANCODE_3,KB_3},{SDL_SCANCODE_4,KB_4},
+    {SDL_SCANCODE_5,KB_5},{SDL_SCANCODE_6,KB_6},{SDL_SCANCODE_7,KB_7},{SDL_SCANCODE_8,KB_8},{SDL_SCANCODE_9,KB_9},
     /* Arrows */
     {SDL_SCANCODE_W,KB_Up},{SDL_SCANCODE_S,KB_Down},{SDL_SCANCODE_A,KB_Left},{SDL_SCANCODE_D,KB_Right},
     {SDL_SCANCODE_UP,KB_Up},{SDL_SCANCODE_DOWN,KB_Down},{SDL_SCANCODE_LEFT,KB_Left},{SDL_SCANCODE_RIGHT,KB_Right},
@@ -344,7 +374,13 @@ void internal_kb_Scan() {
     }
 }
 
-#define videoCopyArray uint8_t c = videoCopy[z]
+void renderCursor(uint8_t* data) {
+	size_t posX = lcd_CrsrX;
+	size_t posY = lcd_CrsrY;
+	for (size_t i = 0; i < lcd_CrsrImageLen64; i++) {
+
+	}
+}
 
 void blit16bpp(uint8_t* data) {
 	uint8_t* PreCalc16;
@@ -374,8 +410,9 @@ void blit16bpp(uint8_t* data) {
 				data[w] = PreCalc16[c + 1]; w++;
 				data[w] = PreCalc16[c + 2]; w++;
 			}
-			z++;
+			z += columnMajorMode ? LCD_RESY : 1;
 		}
+		z -= columnMajorMode ? ((LCD_RESX * LCD_RESY) - 1) : 0;
 		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
 		//w += Master.pitch - (LCD_RESX * lenY * 3);
 		for (uint8_t s = 0; s < lenY - 1; s++) {
@@ -388,17 +425,18 @@ void blit16bpp(uint8_t* data) {
 void blit8bpp(uint8_t* data) {
 	size_t w = 0;
 	size_t z = 0;
-	for (uint32_t y = 0; y < LCD_RESY; y++) {
-		for (uint32_t x = 0; x < LCD_RESX; x++) {
-			videoCopyArray;
+	for (uint32_t y = 0; y < (uint32_t)LCD_RESY; y++) {
+		for (uint32_t x = 0; x < (uint32_t)LCD_RESX; x++) {
+			uint8_t c = videoCopy[z];
 			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
 			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c]; w++;
 				data[w] = colorG[c]; w++;
 				data[w] = colorB[c]; w++;
 			}
-			z++;
+			z += columnMajorMode ? LCD_RESY : 1;
 		}
+		z -= columnMajorMode ? ((LCD_RESX * LCD_RESY) - 1) : 0;
 		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
 		//w += Master.pitch - (LCD_RESX * lenY * 3);
 		for (uint8_t s = 0; s < lenY - 1; s++) {
@@ -414,7 +452,7 @@ void blit4bpp(uint8_t* data) {
 	size_t z = 0;
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-			videoCopyArray;
+			uint8_t c = videoCopy[z];
 			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
 			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c & 0xF]; w++;
@@ -424,8 +462,9 @@ void blit4bpp(uint8_t* data) {
 				data[w] = colorG[(c >> 4) & 0xF]; w++;
 				data[w] = colorB[(c >> 4) & 0xF]; w++;
 			}
-			z++;
+			z += columnMajorMode ? (LCD_RESY / PixelsPerByte) : 1;
 		}
+		z -= columnMajorMode ? (((LCD_RESX / PixelsPerByte) * (LCD_RESY / PixelsPerByte)) - 1) : 0;
 		uint8_t lenY = ((Master.resY * (y + 1)) / LCD_RESY) - ((Master.resY * y) / LCD_RESY);
 		//w += Master.pitch - (LCD_RESX * lenY * 3);
 		for (uint8_t s = 0; s < lenY - 1; s++) {
@@ -441,7 +480,7 @@ void blit2bpp(uint8_t* data) {
 	size_t z = 0;
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-			videoCopyArray;
+			uint8_t c = videoCopy[z];
 			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
 			for (uint8_t s = 0; s < lenX; s++) {
 				data[w] = colorR[c & 0x3]; w++;
@@ -474,7 +513,7 @@ void blit1bpp(uint8_t* data) {
 	size_t z = 0;
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-			videoCopyArray;
+			uint8_t c = videoCopy[z];
 			uint8_t lenX = ((Master.resX * (x + 1)) / LCD_RESX) - ((Master.resX * x) / LCD_RESX);
 			for (uint8_t s = 0; s < lenX; s++) {
 				for (uint8_t b = 0; b < 8; b++) {
@@ -513,7 +552,7 @@ void copyFrame(uint8_t* data) {
 			copyAmount = (LCD_RESX * LCD_RESY) / 2;
 		break;
 		case 0b011: // 8bpp
-			copyAmount = (LCD_RESX * LCD_RESY) * 2;
+			copyAmount = (LCD_RESX * LCD_RESY);
 		break;
 		case 0b100: // 16bpp
 			copyAmount = (LCD_RESX * LCD_RESY) * 2;
@@ -639,54 +678,72 @@ void initLCDcontroller() {
 }
 
 // Returns True if the window was resized. Optional: Returns new window size.
-bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
+bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t* resizeY) {
 	bool reVal = false;
-	int32_t x = 0, y = 0;
 	static int32_t rX = 0, rY = 0;
-	SDL_GetWindowSize(window,&x,&y);
-	if ((rX != x || rY != y) && (rX != 0 && rY != 0)) {
-		valueLimit(x,RESX_MINIMUM,RESX_MAXIMUM);
-		valueLimit(y,RESY_MINIMUM,RESY_MAXIMUM);
+	if (rX != resX || rY != resY) {
+		valueLimit(resX,RESX_MINIMUM,RESX_MAXIMUM);
+		valueLimit(resY,RESY_MINIMUM,RESY_MAXIMUM);
 
-		if (x & 0x3) { x = x & ~0x3; }
+		if (resX & 0x3) { resX = resX & ~0x3; }
 
 		// const fp64 MaximumAspectRatio = 1.35;
-		// fp64 aspectRatio = ((fp64)x / (fp64)LCD_RESX) / ((fp64)y / (fp64)LCD_RESY);
+		// fp64 aspectRatio = ((fp64)resX / (fp64)LCD_RESX) / ((fp64)resY / (fp64)LCD_RESY);
 		// if (aspectRatio > MaximumAspectRatio) {
-		// 	x = (int32_t)(MaximumAspectRatio * ((fp64)y / (fp64)LCD_RESY) * (fp64)LCD_RESX);
+		// 	resX = (int32_t)(MaximumAspectRatio * ((fp64)resY / (fp64)LCD_RESY) * (fp64)LCD_RESX);
 		// } else if (aspectRatio < 1.0 / MaximumAspectRatio) {
-		// 	y = (int32_t)(MaximumAspectRatio * ((fp64)x / (fp64)LCD_RESX) * (fp64)LCD_RESY);
+		// 	resY = (int32_t)(MaximumAspectRatio * ((fp64)resX / (fp64)LCD_RESX) * (fp64)LCD_RESY);
 		// }
 
-		fp64 scaleVal = MIN((fp64)x / (fp64)LCD_RESX,(fp64)y / (fp64)LCD_RESY);
-		x = (int32_t)(scaleVal * (fp64)LCD_RESX);
-		y = (int32_t)(scaleVal * (fp64)LCD_RESY);
+		fp64 scaleVal = MIN((fp64)resX / (fp64)LCD_RESX,(fp64)resY / (fp64)LCD_RESY);
+		resX = (int32_t)(scaleVal * (fp64)LCD_RESX);
+		resY = (int32_t)(scaleVal * (fp64)LCD_RESY);
 
 		// Sets resX to a multiple of 4 so I don't have to deal with padded and unpadded image buffers
-		if (x & 0x3) { x = x & ~0x3; }
+		if (resX & 0x3) { resX = resX & ~0x3; }
 
-		// scale = MIN(x / LCD_RESX, y / LCD_RESY);
-		// x = LCD_RESX * scale;
-		// y = LCD_RESY * scale;
+		// scale = MIN(resX / LCD_RESX, resY / LCD_RESY);
+		// resX = LCD_RESX * scale;
+		// resY = LCD_RESY * scale;
 
-		SDL_SetWindowSize(window,x,y);
-		SDL_RenderSetLogicalSize(renderer, x, y);
-		Master.resX = x;
-		Master.resY = y;
+		Master.resX = resX;
+		Master.resY = resY;
 		Master.pitch = Master.resX * 3;
-		Master.vram = (uint8_t*)realloc((void*)(Master.vram),Master.resX * Master.resY * 3);
-		if (resX != NULL) { *resX = x; }
-		if (resY != NULL) { *resY = y; }
+		Master.vram = (uint8_t*)realloc((void*)(Master.vram),Master.pitch * Master.resY);
+		if (Master.vram == NULL) {
+			if (texture == NULL) {
+				printf("\nError: realloc Master.vram failed while resizing window");
+				FREE(Master.vram);
+				terminateLCDcontroller();
+				return true;
+			}
+		}
+		SDL_SetWindowSize(window,resX,resY);
+		SDL_RenderSetLogicalSize(renderer, resX, resY);
+		if (resizeX != NULL) { *resizeX = resX; }
+		if (resizeY != NULL) { *resizeY = resY; }
 		if (texture != NULL) {
 			SDL_DestroyTexture(texture);
 		}
 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
+		if (texture == NULL) {
+			printf("\nError: SDL_CreateTexture failed while resizing window");
+			terminateLCDcontroller();
+			return true;
+		}
 		memset(Master.vram,0,Master.pitch * Master.resY);
 		reVal = true;
 	}
-	rX = x;
-	rY = y;
+	rX = resX;
+	rY = resY;
 	return reVal;
+}
+
+// Returns True if the window was resized. Optional: Returns new window size.
+bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
+	int32_t x = 0, y = 0;
+	SDL_GetWindowSize(window,&x,&y);
+	return resizeWindow(x,y,resX,resY);
 }
 
 
@@ -705,5 +762,3 @@ void newFrame() {
 	}
 	SDL_RenderPresent(renderer);
 }
-
-#endif /* X86RENDER_H */

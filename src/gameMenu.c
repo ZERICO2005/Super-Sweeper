@@ -16,22 +16,41 @@
 #include "mineSweeper.h"
 
 void pause6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) {
-    uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
-    uint8_t* fill = lcd_Ram8 + (yW * LCD_RESX + xW);
-    uint8_t b = 1;
-	uint8_t fColor = (gColor << 4) + gColor;
-    for (uint8_t y = 0; y < 8; y++) {
-        for (uint8_t x = 0; x < 6; x++) {
-            *fill = *bitImage & b ? fColor : *fill;
-            fill += (LCD_RESX / 2);
-            *fill = *bitImage & b ? fColor : *fill;
-            fill -= ((LCD_RESX / 2) - 1);
-            bitImage++;
-        }
-        bitImage -= 6;
-        fill += (LCD_RESX - 6);
-        b <<= 1;
-    }
+	#ifndef SWAP_X_AND_Y_CORD
+		uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
+		uint8_t* fill = lcd_Ram8 + (yW * LCD_RESX + xW + (LCD_RESY * LCD_RESX));
+		uint8_t b = 0x1;
+		uint8_t fColor = (gColor << 4) + gColor;
+		for (uint8_t y = 0; y < 8; y++) {
+			for (uint8_t x = 0; x < 6; x++) {
+				*fill = *bitImage & b ? fColor : *fill;
+				fill += (LCD_RESX / 2);
+				*fill = *bitImage & b ? fColor : *fill;
+				fill -= ((LCD_RESX / 2) - 1);
+				bitImage++;
+			}
+			bitImage -= 6;
+			fill += (LCD_RESX - 6);
+			b <<= 1;
+		}
+	#else
+		uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
+		uint8_t* fill = lcd_Ram8 + (xW * LCD_RESY + yW + (LCD_RESY * LCD_RESX));
+		uint8_t b = 0x1;
+		uint8_t fColor = (gColor << 4) + gColor;
+		for (uint8_t x = 0; x < 6; x++) {
+			for (uint8_t y = 0; y < 8; y++) {
+				*fill = *bitImage & b ? fColor : *fill;
+				fill += (LCD_RESY / 2);
+				*fill = *bitImage & b ? fColor : *fill;
+				fill -= ((LCD_RESY / 2) - 1);
+				b <<= 1;
+			}
+			bitImage++;
+			b = 0x1;
+			fill += (LCD_RESY - 8);
+		}
+	#endif
 }
 
 void text6x8b4(uint24_t xW, uint24_t yW, uint8_t lexicon) { //Incompatibile with 0.70.Alpha and later
@@ -92,15 +111,15 @@ void fadeIn() { //Fade in after setup
 
 void printStat(uint24_t n) { //Proprietary
     if (n > 999) {
-        pause6x8(127, 324, ((n / 1000) % 10));
+        pause6x8(127, 84, ((n / 1000) % 10));
     }
     if (n > 99) {
-        pause6x8(134, 324, ((n / 100) % 10));
+        pause6x8(134, 84, ((n / 100) % 10));
     }
     if (n > 9) {
-        pause6x8(141, 324, ((n / 10) % 10));
+        pause6x8(141, 84, ((n / 10) % 10));
     }
-    pause6x8(148, 324, (n % 10));
+    pause6x8(148, 84, (n % 10));
 }
 
 
@@ -122,7 +141,7 @@ void scoreScreen() { //broken //I shall fix the sorting now that I can code inse
     gColor = 7;
     {
         uint24_t x = 8;
-        uint24_t y = 248;
+        uint24_t y = 8;
         uint8_t i = 0;
         for (uint24_t j = section[9]; j < section[10]; j++) { //Set to Win Screen text for temporary measures
             if (text[j] == 146) {
@@ -143,13 +162,13 @@ void scoreScreen() { //broken //I shall fix the sorting now that I can code inse
     }
 
     gColor = 7;
-    pause6x8(148, 268, (scoreSort() % 10));
-    pause6x8(148, 280, (score % 10));
-    pause6x8(148, 292, (timer % 10));
+    pause6x8(148, 28, (scoreSort() % 10));
+    pause6x8(148, 40, (score % 10));
+    pause6x8(148, 52, (timer % 10));
     gColor = 0;
-    pause6x8(50, 304, 66);
-    pause6x8(57, 304, 66);
-    pause6x8(64, 304, 66);
+    pause6x8(50, 64, 66);
+    pause6x8(57, 64, 66);
+    pause6x8(64, 64, 66);
     option = 0;
     while (!(kb_Data[1] & (kb_Graph | kb_Del))) {
         do {
@@ -163,9 +182,9 @@ void scoreScreen() { //broken //I shall fix the sorting now that I can code inse
                 name[option]++;
             }
             gColor = 7;
-            fillRect(50 + (option * 7),304,6,8);
+            fillRect(50 + (option * 7),64,6,8);
             gColor = 0;
-            pause6x8(50 + (option * 7), 304, name[option]);
+            pause6x8(50 + (option * 7), 64, name[option]);
         }
         if (kb_Data[7] & kb_Down) {
             if (name[option] == 33) {
@@ -174,9 +193,9 @@ void scoreScreen() { //broken //I shall fix the sorting now that I can code inse
                 name[option]--;
             }
             gColor = 7;
-            fillRect(50 + (option * 7),304,6,8);
+            fillRect(50 + (option * 7),64,6,8);
             gColor = 0;
-            pause6x8(50 + (option * 7), 304, name[option]);
+            pause6x8(50 + (option * 7), 64, name[option]);
         }
         if (kb_Data[7] & kb_Left) {
             if (option == 0) {
@@ -213,29 +232,29 @@ void timeDisplay(uint32_t input) { //systemTime - gameStartTime - gamePauseTime
         //_100micro = (input / 3); // 100 micro Second, 1875/2048 ~8.447e-2 accuracy
     }
 	if (_1000mili > 9999) { // ~2.8 Hours
-        pause6x8(103, 336, ((_1000mili / 10000) % 10));
+        pause6x8(103, 96, ((_1000mili / 10000) % 10));
     }
 	if (_1000mili > 999) { // ~16.7 minutes
-        pause6x8(110, 336, ((_1000mili / 1000) % 10));
+        pause6x8(110, 96, ((_1000mili / 1000) % 10));
     }
     if (_1000mili > 99) { // 100 Seconds
-        pause6x8(117, 336, ((_1000mili / 100) % 10));
+        pause6x8(117, 96, ((_1000mili / 100) % 10));
     }
     if (_1000mili > 9) { // 10 Seconds
-        pause6x8(124, 336, ((_1000mili / 10) % 10));
+        pause6x8(124, 96, ((_1000mili / 10) % 10));
     }
-    pause6x8(136, 336, 34); //Decimal Point
-    pause6x8(131, 336, (_1000mili % 10)); // 1 Second
-    pause6x8(141, 336, (_100mili % 10)); // 100 MiliSeconds
-    pause6x8(148, 336, (_10mili % 10)); // 10 MiliSeconds
+    pause6x8(136, 96, 34); //Decimal Point
+    pause6x8(131, 96, (_1000mili % 10)); // 1 Second
+    pause6x8(141, 96, (_100mili % 10)); // 100 MiliSeconds
+    pause6x8(148, 96, (_10mili % 10)); // 10 MiliSeconds
 }
 
 void pauseScroll() {
     if ((kb_Data[7] & (kb_Up | kb_Down)) && (keyReady & VERT)) {
         keyReset(vERT);
         gColor = 0;
-        pause6x8(8, 268 + (option * 12), 29);
-        pause6x8(141, 268 + (option * 12), 28);
+        pause6x8(8, 28 + (option * 12), 29);
+        pause6x8(141, 28 + (option * 12), 28);
         if ((kb_Data[7] & kb_Up)) {
             if (option == 0) {
                 option = 3;
@@ -250,8 +269,8 @@ void pauseScroll() {
             }
         }
         gColor = 7;
-        pause6x8(8, 268 + (option * 12), 29);
-        pause6x8(141, 268 + (option * 12), 28);
+        pause6x8(8, 28 + (option * 12), 29);
+        pause6x8(141, 28 + (option * 12), 28);
     }
 }
 
@@ -272,7 +291,7 @@ void winScreen() {
     gColor = 7;
     {   
         uint24_t x = 8;
-        uint24_t y = 248;
+        uint24_t y = 8;
         uint8_t i = 0;
         uint24_t j = 0;
         if (cheater == 1) {
@@ -300,8 +319,8 @@ void winScreen() {
         }
     }
 
-    pause6x8(8, 268, 29);
-    pause6x8(141, 268, 28);
+    pause6x8(8, 28, 29);
+    pause6x8(141, 28, 28);
 
     option = 0;
     printStat(score);
@@ -350,7 +369,7 @@ void gameOver() { //160x120 screen due to poor coding
     gColor = 7;
     {   
         uint24_t x = 8;
-        uint24_t y = 248;
+        uint24_t y = 8;
         uint8_t i = 0;
         for (uint24_t j = 0; j < gameOverTextLength; j++) {
             if (gameOverText[j] == 33) {
@@ -369,8 +388,8 @@ void gameOver() { //160x120 screen due to poor coding
             }
         }
     }
-    pause6x8(8, 268, 29);
-    pause6x8(141, 268, 28);
+    pause6x8(8, 28, 29);
+    pause6x8(141, 28, 28);
     
 
     option = 0;
@@ -417,7 +436,7 @@ void pause() {
     gColor = 7;
     {   
         uint24_t x = 8;
-        uint24_t y = 248;
+        uint24_t y = 8;
         uint8_t i = 0;
         for (uint24_t j = 0; j < pauseTextLength; j++) {
             if (pauseText[j] == 33) {
@@ -436,8 +455,8 @@ void pause() {
             }
         }
     }
-    pause6x8(8, 268, 29);
-    pause6x8(141, 268, 28);
+    pause6x8(8, 28, 29);
+    pause6x8(141, 28, 28);
 
     option = 0;
     uint24_t clearTemp = ((sizeX) * (sizeY)) - mines - cleared;

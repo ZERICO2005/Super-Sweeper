@@ -18,9 +18,11 @@
 
 #define borderIndexes 2
 //Graphic numbers
-#define gMine 25
-#define gFlag 26
-#define gQuestion 27
+#define gMine (25)
+#define gFlag (26)
+#define gQuestion (27)
+#define gKnight (30)
+#define gInvertedMine (31)
 
 #define currentTime (systemTime - gameStartTime - gamePauseTime)
 void gameControl(); //Temporary May 23

@@ -31,8 +31,15 @@ void horiz(uint24_t x1, uint24_t y, uint24_t x2); //x start, y postion, x length
 
 void vert(uint24_t x, uint24_t y1, uint24_t y2); //x postion, y start, y length
 
-#define plot(x,y) lcd_Ram8[(x) + ((y) * 320)] = gColor
+#ifndef SWAP_X_AND_Y_CORD
+	#define plot(x,y) lcd_Ram8[(x) + ((y) * LCD_RESX)] = gColor
+#else
+	#define plot(x,y) lcd_Ram8[(y) + ((x) * LCD_RESY)] = gColor
+#endif
+
+// Avoid these functions
 #define plotFast(z) lcd_Ram8[z] = gColor
+#define plotColorFast(z,c) lcd_Ram8[z] = (c)
 
 void fillScreen(); //Fills buffer 0
 

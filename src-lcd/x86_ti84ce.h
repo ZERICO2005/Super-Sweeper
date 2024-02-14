@@ -80,6 +80,8 @@
 	#define LCD_RESY                (240)
 
 	void resetLCDcontroller();
+	void SPI_Row_Major();
+	void SPI_Column_Major();
 
 	#define lcd_RGB4bit 0x825
 	#define lcd_RGB8bit 0x827
@@ -153,5 +155,6 @@
 	int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle);
 	uint16_t ti_GetSize(uint8_t handle);
 	int24_t ti_Rewind(uint8_t handle);
+	void* ti_GetDataPtr(uint8_t handle);
 
 #endif /* X86_TI84CE_H */

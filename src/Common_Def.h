@@ -14,13 +14,15 @@
 
 #define PROGRAM_V_MAJOR 0
 #define PROGRAM_V_MINOR 81
-#define PROGRAM_V_PATCH 1
+#define PROGRAM_V_PATCH 2
 
 //#define PLATFORM_TI84CE
 #define PLATFORM_X86
 
 //#define DEBUG_FRAMERATE_COUNTER // Shows FPS and Frame-Time
 //#define DEBUG_FRAME_SHIFT // Use the numberpad to move the screen around
+
+#define SWAP_X_AND_Y_CORD
 
 #ifdef PLATFORM_TI84CE
 	/* Disabled Functions */
@@ -58,10 +60,11 @@
 		#define lcd_Video4bit 0x25
 		#define lcd_Video8bit 0x27
 		#define lcd_Video16bit 0x2D
+
+		/* Disabled Functions */
+			#define SPI_Row_Major()
+			#define SPI_Column_Major()
 #else
-	/* Disabled Functions */
-		#define SPI_Row_Major()
-		#define SPI_Column_Major()
 	#include "x86_Common_Def.h"
 	#include "x86_ti84ce.h"
 	#include "x86_Render.h"
