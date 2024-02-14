@@ -14,7 +14,7 @@
 
 #define PROGRAM_V_MAJOR 0
 #define PROGRAM_V_MINOR 81
-#define PROGRAM_V_PATCH 2
+#define PROGRAM_V_PATCH 3
 
 //#define PLATFORM_TI84CE
 #define PLATFORM_X86
@@ -50,16 +50,38 @@
 		#define lcd_VideoBit             (*(volatile uint8_t*)0xE30018)
 		#define lcd_Palette              ((uint16_t*)0xE30200)
 
+		#define lcd_RGB1bit 0x821
+		#define lcd_RGB2bit 0x823
 		#define lcd_RGB4bit 0x825
 		#define lcd_RGB8bit 0x827
 		#define lcd_RGB16bit 0x82D
+
+		#define lcd_BGR1bit 0x921
+		#define lcd_BGR2bit 0x923
 		#define lcd_BGR4bit 0x925
 		#define lcd_BGR8bit 0x927
 		#define lcd_BGR16bit 0x92D
 
+		#define lcd_Video1bit 0x21
+		#define lcd_Video2bit 0x23
 		#define lcd_Video4bit 0x25
 		#define lcd_Video8bit 0x27
 		#define lcd_Video16bit 0x2D
+
+		#define SPI_CR0                    (*(volatile void*)0xF80000)
+		#define SPI_CR1                    (*(volatile void*)0xF80004)
+		#define SPI_CR2                    (*(volatile void*)0xF80008)
+		#define SPI_STATUS_BITS            (*(volatile void*)0xF8000C) /* Read Only */
+		#define SPI_INTERRUPT_CONTROL      (*(volatile void*)0xF80010)
+		#define SPI_INTERRUPT_STATUS       (*(volatile void*)0xF80014) /* Read Only */
+		#define SPI_FIFO_IN_OUT            (*(volatile void*)0xF80018)
+		#define SPI_FIFO_IN_OUT8           (*(volatile uint8_t*)0xF80018)
+		#define SPI_FIFO_IN_OUT16          (*(volatile uint16_t*)0xF80018)
+		#define SPI_FIFO_IN_OUT24          (*(volatile uint24_t*)0xF80018)
+		#define SPI_FIFO_IN_OUT32          (*(volatile uint32_t*)0xF80018)
+		#define SPI_INSIDE_RESERVED_RANGE  (*(volatile void*)0xF8001C)
+		#define SPI_REVISION               (*(volatile void*)0xF80060) /* Read Only */
+		#define SPI_FEATURES               (*(volatile uint32_t*)0xF80064) /* Read Only */
 
 		/* Disabled Functions */
 			#define SPI_Row_Major()

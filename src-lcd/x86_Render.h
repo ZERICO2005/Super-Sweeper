@@ -9,7 +9,7 @@
 #ifndef X86_RENDER_H
 #define X86_RENDER_H
 
-void initLCDcontroller();
+void initLCDcontroller(const char* windowTitle);
 int terminateLCDcontroller();
 
 uint32_t getMouseState(int32_t* posX, int32_t* posY);

@@ -356,19 +356,19 @@ void videoUpdate() { //Requires an Update
         darkMode = 1;
 		#ifdef PLATFORM_TI84CE
 			((void(*)(void))0x384)();
-			*(volatile uint8_t*)0xF80018 = 0x08;
-			*(volatile uint8_t*)0xF80018 = 0x44;
-			*(volatile uint8_t*)0xF80018 = 0x21;
-			*(volatile uint8_t*)0xF80008 = 0x01;
+			SPI_FIFO_IN_OUT8 = 0x08;
+			SPI_FIFO_IN_OUT8 = 0x44;
+			SPI_FIFO_IN_OUT8 = 0x21;
+			SPI_CR2 = 0x01;
 		#endif
     } else if (displayMode < 2 && darkMode == 1) {
         darkMode = 0;
 		#ifdef PLATFORM_TI84CE
 			((void(*)(void))0x384)();
-			*(volatile uint8_t*)0xF80018 = 0x08;
-			*(volatile uint8_t*)0xF80018 = 0x44;
-			*(volatile uint8_t*)0xF80018 = 0x20;
-			*(volatile uint8_t*)0xF80008 = 0x01;
+			SPI_FIFO_IN_OUT8 = 0x08;
+			SPI_FIFO_IN_OUT8 = 0x44;
+			SPI_FIFO_IN_OUT8 = 0x20;
+			SPI_CR2 = 0x01;
 		#endif
 	}
 

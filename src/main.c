@@ -13,17 +13,17 @@
 #include "fmVideo.h"
 
 void init_routine() {
-	initLCDcontroller();
+	initLCDcontroller("Super-Sweeper v" STR_N(PROGRAM_V_MAJOR) "." STR_N(PROGRAM_V_MINOR) "." STR_N(PROGRAM_V_PATCH));
 	#ifndef SWAP_X_AND_Y_CORD
 		SPI_Row_Major();
 	#else
 		SPI_Column_Major();
 	#endif
 	// ((void(*)(void))0x384)();
-	// *(volatile uint8_t*)0xF80018 = 0x08;
-	// *(volatile uint8_t*)0xF80018 = 0x44;
-	// *(volatile uint8_t*)0xF80018 = 0x21;
-	// *(volatile uint8_t*)0xF80008 = 0x01;
+	// SPI_FIFO_IN_OUT8 = 0x08;
+	// SPI_FIFO_IN_OUT8 = 0x44;
+	// SPI_FIFO_IN_OUT8 = 0x21;
+	// SPI_CR2 = 0x01;
 
 	// Timers
 	timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
