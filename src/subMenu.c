@@ -359,7 +359,7 @@ void videoUpdate() { //Requires an Update
 			SPI_FIFO_IN_OUT8 = 0x08;
 			SPI_FIFO_IN_OUT8 = 0x44;
 			SPI_FIFO_IN_OUT8 = 0x21;
-			SPI_CR2 = 0x01;
+			*(volatile uint8_t*)SPI_CR2 = 0x01;
 		#endif
     } else if (displayMode < 2 && darkMode == 1) {
         darkMode = 0;
@@ -368,7 +368,7 @@ void videoUpdate() { //Requires an Update
 			SPI_FIFO_IN_OUT8 = 0x08;
 			SPI_FIFO_IN_OUT8 = 0x44;
 			SPI_FIFO_IN_OUT8 = 0x20;
-			SPI_CR2 = 0x01;
+			*(volatile uint8_t*)SPI_CR2 = 0x01;
 		#endif
 	}
 

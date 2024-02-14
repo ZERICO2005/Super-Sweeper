@@ -12,18 +12,54 @@
 #include "menu.h"
 #include "fmVideo.h"
 
+
+
+#ifdef PLATFORM_TI84CE
+	//#include "SPI.h"
+void SPI_Row_Major() {
+	boot_InitializeHardware();
+    SPI_COMMAND(0x36);
+    SPI_PARAMETER(0b00001000); // Column Major Mode and BGR bit
+
+    SPI_COMMAND(0x2A);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0x00);
+    SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F);
+
+	SPI_COMMAND(0x2B);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0x00);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF);
+	*(volatile uint8_t*)SPI_CR2 = 0x01;
+}
+
+void SPI_Column_Major() {
+    boot_InitializeHardware();
+    SPI_COMMAND(0x36);
+    SPI_PARAMETER(0b00101000); // Column Major Mode and BGR bit
+
+    SPI_COMMAND(0x2A);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0x00);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF);
+    
+    SPI_COMMAND(0x2B);
+    SPI_PARAMETER(0x00); SPI_PARAMETER(0x00);
+    SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F);
+	*(volatile uint8_t*)SPI_CR2 = 0x01;
+}
+#endif
+
 void init_routine() {
 	initLCDcontroller("Super-Sweeper v" STR_N(PROGRAM_V_MAJOR) "." STR_N(PROGRAM_V_MINOR) "." STR_N(PROGRAM_V_PATCH));
-	#ifndef SWAP_X_AND_Y_CORD
-		SPI_Row_Major();
-	#else
-		SPI_Column_Major();
-	#endif
+	// #ifndef SWAP_X_AND_Y_CORD
+	// 	SPI_Row_Major();
+	// #else
+	// 	SPI_Column_Major();
+	// #endif
+	SPI_Column_Major();
 	// ((void(*)(void))0x384)();
 	// SPI_FIFO_IN_OUT8 = 0x08;
 	// SPI_FIFO_IN_OUT8 = 0x44;
 	// SPI_FIFO_IN_OUT8 = 0x21;
-	// SPI_CR2 = 0x01;
+	// *(volatile uint8_t*)SPI_CR2 = 0x01;
 
 	// Timers
 	timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
@@ -37,6 +73,7 @@ void init_routine() {
 
 void terminate_routine() {
 	terminateLCDcontroller();
+	SPI_Row_Major();
 	lcd_UpBase = 0xD40000;
 	lcd_VideoMode = lcd_BGR16bit;
 }

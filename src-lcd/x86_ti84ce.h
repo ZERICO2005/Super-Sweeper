@@ -102,21 +102,21 @@
 /* SPI Controller (Unimplemented) */
 	//	https://wikiti.brandonw.net/index.php?title=84PCE:Ports:D000
 
-	#define SPI_CR0                    (*(volatile void*)&simulated_ram[0xF80000])
-	#define SPI_CR1                    (*(volatile void*)&simulated_ram[0xF80004])
-	#define SPI_CR2                    (*(volatile void*)&simulated_ram[0xF80008])
-	#define SPI_STATUS_BITS            (*(volatile void*)&simulated_ram[0xF8000C]) /* Read Only */
-	#define SPI_INTERRUPT_CONTROL      (*(volatile void*)&simulated_ram[0xF80010])
-	#define SPI_INTERRUPT_STATUS       (*(volatile void*)&simulated_ram[0xF80014]) /* Read Only */
-	#define SPI_FIFO_IN_OUT            (*(volatile void*)&simulated_ram[0xF80018])
+	#define SPI_CR0                    ((volatile void*)&simulated_ram[0xF80000])
+	#define SPI_CR1                    ((volatile void*)&simulated_ram[0xF80004])
+	#define SPI_CR2                    ((volatile void*)&simulated_ram[0xF80008])
+	#define SPI_STATUS_BITS            ((volatile void*)&simulated_ram[0xF8000C]) /* Read Only */
+	#define SPI_INTERRUPT_CONTROL      ((volatile void*)&simulated_ram[0xF80010])
+	#define SPI_INTERRUPT_STATUS       ((volatile void*)&simulated_ram[0xF80014]) /* Read Only */
+	#define SPI_FIFO_IN_OUT            ((volatile void*)&simulated_ram[0xF80018])
 	#define SPI_FIFO_IN_OUT8           (*(volatile uint8_t*)&simulated_ram[0xF80018])
 	#define SPI_FIFO_IN_OUT16          (*(volatile uint16_t*)&simulated_ram[0xF80018])
 	#define SPI_FIFO_IN_OUT24          (*(volatile uint24_t*)&simulated_ram[0xF80018])
 	#define SPI_FIFO_IN_OUT32          (*(volatile uint32_t*)&simulated_ram[0xF80018])
-	#define SPI_INSIDE_RESERVED_RANGE  (*(volatile void*)&simulated_ram[0xF8001C])
-	#define SPI_REVISION               (*(volatile void*)&simulated_ram[0xF80060]) /* Read Only */
+	#define SPI_INSIDE_RESERVED_RANGE  ((volatile void*)&simulated_ram[0xF8001C])
+	#define SPI_REVISION               ((volatile void*)&simulated_ram[0xF80060]) /* Read Only */
 	#define SPI_FEATURES               (*(volatile uint32_t*)&simulated_ram[0xF80064]) /* Read Only */
-
+	
 	// Supplemental Functions
 	void SPI_Row_Major();
 	void SPI_Column_Major();

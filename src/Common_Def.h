@@ -14,10 +14,10 @@
 
 #define PROGRAM_V_MAJOR 0
 #define PROGRAM_V_MINOR 81
-#define PROGRAM_V_PATCH 3
+#define PROGRAM_V_PATCH 4
 
-//#define PLATFORM_TI84CE
-#define PLATFORM_X86
+#define PLATFORM_TI84CE
+//#define PLATFORM_X86
 
 //#define DEBUG_FRAMERATE_COUNTER // Shows FPS and Frame-Time
 //#define DEBUG_FRAME_SHIFT // Use the numberpad to move the screen around
@@ -27,7 +27,7 @@
 #ifdef PLATFORM_TI84CE
 	/* Disabled Functions */
 		#define newFrame()
-		#define initLCDcontroller()
+		#define initLCDcontroller(...)
 		#define terminateLCDcontroller()
 	/* Includes */
 		#include <ti/getcsc.h>
@@ -68,24 +68,26 @@
 		#define lcd_Video8bit 0x27
 		#define lcd_Video16bit 0x2D
 
-		#define SPI_CR0                    (*(volatile void*)0xF80000)
-		#define SPI_CR1                    (*(volatile void*)0xF80004)
-		#define SPI_CR2                    (*(volatile void*)0xF80008)
-		#define SPI_STATUS_BITS            (*(volatile void*)0xF8000C) /* Read Only */
-		#define SPI_INTERRUPT_CONTROL      (*(volatile void*)0xF80010)
-		#define SPI_INTERRUPT_STATUS       (*(volatile void*)0xF80014) /* Read Only */
-		#define SPI_FIFO_IN_OUT            (*(volatile void*)0xF80018)
+		#define SPI_CR0                    ((volatile void*)0xF80000)
+		#define SPI_CR1                    ((volatile void*)0xF80004)
+		#define SPI_CR2                    ((volatile void*)0xF80008)
+		#define SPI_STATUS_BITS            ((volatile void*)0xF8000C) /* Read Only */
+		#define SPI_INTERRUPT_CONTROL      ((volatile void*)0xF80010)
+		#define SPI_INTERRUPT_STATUS       ((volatile void*)0xF80014) /* Read Only */
+		#define SPI_FIFO_IN_OUT            ((volatile void*)0xF80018)
 		#define SPI_FIFO_IN_OUT8           (*(volatile uint8_t*)0xF80018)
 		#define SPI_FIFO_IN_OUT16          (*(volatile uint16_t*)0xF80018)
 		#define SPI_FIFO_IN_OUT24          (*(volatile uint24_t*)0xF80018)
 		#define SPI_FIFO_IN_OUT32          (*(volatile uint32_t*)0xF80018)
-		#define SPI_INSIDE_RESERVED_RANGE  (*(volatile void*)0xF8001C)
-		#define SPI_REVISION               (*(volatile void*)0xF80060) /* Read Only */
+		#define SPI_INSIDE_RESERVED_RANGE  ((volatile void*)0xF8001C)
+		#define SPI_REVISION               ((volatile void*)0xF80060) /* Read Only */
 		#define SPI_FEATURES               (*(volatile uint32_t*)0xF80064) /* Read Only */
 
+		#define boot_InitializeHardware()  ((void(*)(void))0x384)(); // Used in the color invert commands
+
 		/* Disabled Functions */
-			#define SPI_Row_Major()
-			#define SPI_Column_Major()
+			// #define SPI_Row_Major()
+			// #define SPI_Column_Major()
 #else
 	#include "x86_Common_Def.h"
 	#include "x86_ti84ce.h"
@@ -127,5 +129,15 @@ typedef int64_t i64;
 
 	#define linearInterpolation(x,x0,x1,y0,y1) ( (y0) + ( (((y1) - (y0)) * ((x) - (x0))) / ((x1) - (x0)) ) )
 	#define linearInterpolationClamp(x,x0,x1,y0,y1) ( ((x) <= (x0)) ? (y0) : ( ((x) >= (x1)) ? (y1) : linearInterpolation((x),(x0),(x1),(y0),(y1)) ) )
+
+	#define SPI_COMMAND(x) \
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = ((x) >> 6) & 0b111;\
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = ((x) >> 3) & 0b111;\
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = (x) & 0b111
+
+	#define SPI_PARAMETER(x) \
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = (((x) >> 6) & 0b111) | 0b100;\
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = ((x) >> 3) & 0b111;\
+	*(volatile uint8_t*)SPI_FIFO_IN_OUT = (x) & 0b111;
 
 #endif /* COMMON_DEF_H */
